@@ -1,48 +1,67 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
-import API from "../services/api";
+import React, { useState } from 'react';
+import { registerUser } from '../services/api';
+import { useNavigate } from 'react-router-dom';
 
-function Register() {
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [role, setRole] = useState("customer");
+const Register = () => {
+    const [name, setName] = useState('');
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const [roles, setRoles] = useState(['customer']);
+    const [message, setMessage] = useState('');
+    const navigate = useNavigate();
 
-  const register = async () => {
-    try {
-      await API.post("/auth/register", {
-        name,
-        email,
-        password,
-        role
-      });
+    const handleRoleChange = (role) => {
+        if (roles.includes(role)) {
+            setRoles(roles.filter(r => r !== role));
+        } else {
+            setRoles([...roles, role]);
+        }
+    };
 
-      alert("Registration successful!");
-    } catch (error) {
-      alert("Registration failed");
-    }
-  };
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        try {
+            const response = await registerUser({ name, email, password, roles });
+            setMessage(response.data.message);
+            // Redirect to home after successful registration
+            setTimeout(() => navigate('/'), 2000);
+        } catch (err) {
+            setMessage(err.response?.data?.message || 'Registration failed');
+        }
+    };
 
-  return (
-    <div>
-      <h2>Register</h2>
-
-      <input placeholder="Name" onChange={(e) => setName(e.target.value)} />
-      <input placeholder="Email" onChange={(e) => setEmail(e.target.value)} />
-      <input placeholder="Password" type="password" onChange={(e) => setPassword(e.target.value)} />
-
-      <select onChange={(e) => setRole(e.target.value)}>
-        <option value="customer">Customer</option>
-        <option value="rider">Rider</option>
-        <option value="supermarket">Supermarket</option>
-      </select>
-
-      <button onClick={register}>Register</button>
-    </div>
-  );
-}
-<p>
-  Already have an account? <Link to="/">Login</Link>
-</p>
+    return (
+        <div className="container">
+            <div className="page-header">
+                <h2>Register</h2>
+                <p>Create your account and select your roles in the Bicycle App.</p>
+            </div>
+            {message && <div className="alert">{message}</div>}
+            <div className="card card-form">
+                <form onSubmit={handleSubmit} className="product-form">
+                    <input type="text" placeholder="Name" value={name} onChange={e => setName(e.target.value)} required />
+                    <input type="email" placeholder="Email" value={email} onChange={e => setEmail(e.target.value)} required />
+                    <input type="password" placeholder="Password" value={password} onChange={e => setPassword(e.target.value)} required />
+                    <div className="roles-section">
+                        <label>Select your roles:</label>
+                        <label>
+                            <input type="checkbox" checked={roles.includes('customer')} onChange={() => handleRoleChange('customer')} />
+                            Customer
+                        </label>
+                        <label>
+                            <input type="checkbox" checked={roles.includes('supermarket')} onChange={() => handleRoleChange('supermarket')} />
+                            Supermarket Owner
+                        </label>
+                        <label>
+                            <input type="checkbox" checked={roles.includes('rider')} onChange={() => handleRoleChange('rider')} />
+                            Rider
+                        </label>
+                    </div>
+                    <button type="submit">Register</button>
+                </form>
+            </div>
+        </div>
+    );
+};
 
 export default Register;
