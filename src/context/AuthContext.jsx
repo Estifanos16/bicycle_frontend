@@ -11,7 +11,7 @@ export const AuthProvider = ({ children }) => {
         if (token) {
             setToken(token); // set axios header
             const payload = JSON.parse(atob(token.split('.')[1]));
-            setUser({ id: payload.id, roles: payload.roles, email: payload.email });
+            setUser({ id: payload.id, roles: payload.roles, email: payload.email, name: payload.name });
         }
     }, [token]);
 

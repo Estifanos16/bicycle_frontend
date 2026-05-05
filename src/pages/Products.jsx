@@ -6,8 +6,29 @@ const Products = () => {
   const { user } = useContext(AuthContext);
   const [editingProduct, setEditingProduct] = useState(null);
   const [products, setProducts] = useState([]);
-  const [newProduct, setNewProduct] = useState({ name: '', price: 0, description: '', stock: 0 });
+  const [newProduct, setNewProduct] = useState({ name: '', price: 0, description: '', category: '', stock: 0 });
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('All');
   const [message, setMessage] = useState('');
+
+  // Predefined categories for supermarket owners
+  const predefinedCategories = [
+    'General',
+    'Clothing',
+    'Electronics',
+    'Food',
+    'Beverages',
+    'Household',
+    'Sports',
+    'Toys',
+    'Books',
+    'Health & Beauty',
+    'Automotive',
+    'Gardening',
+    'Furniture',
+    'Appliances',
+    'Pet Supplies'
+  ];
 
   const fetchProducts = async () => {
     try {
@@ -36,7 +57,7 @@ const Products = () => {
         setProducts([response.data.product, ...products]);
         setMessage('Product created successfully!');
       }
-      setNewProduct({ name: '', price: 0, description: '', stock: 0 });
+      setNewProduct({ name: '', price: 0, description: '', category: '', stock: 0 });
     } catch (err) {
       setMessage(err.response?.data?.message || 'Failed to save product');
     }
@@ -55,6 +76,7 @@ const Products = () => {
   const handleEdit = async (product) => {
     const newName = prompt('Enter new product name:', product.name);
     const newPrice = prompt('Enter new price:', product.price);
+    const newCategory = prompt('Enter new category:', product.category || '');
     const newDescription = prompt('Enter new description:', product.description);
     const newStock = prompt('Enter new stock quantity:', product.stock);
 
@@ -63,6 +85,7 @@ const Products = () => {
         const updated = await updateProduct(product._id, {
           name: newName,
           price: Number(newPrice),
+          category: newCategory,
           description: newDescription,
           stock: Number(newStock),
         });
@@ -74,11 +97,39 @@ const Products = () => {
     }
   };
 
+  const filteredProducts = products.filter((product) => {
+    const term = searchTerm.trim().toLowerCase();
+    const category = product.category || 'General';
+    const matchesSearch =
+      product.name.toLowerCase().includes(term) ||
+      (product.description || '').toLowerCase().includes(term) ||
+      category.toLowerCase().includes(term);
+
+    const matchesCategory = selectedCategory === 'All' || category === selectedCategory;
+    return matchesSearch && matchesCategory;
+  });
+
+  const categories = ['All', ...Array.from(new Set([...predefinedCategories, ...products.map((product) => product.category || 'General')]))].sort();
+
   return (
     <div className="container">
       <div className="page-header">
         <h2>Products</h2>
         <p>Browse the latest supermarket products and add new items if you manage a store.</p>
+      </div>
+
+      <div className="product-filters">
+        <input
+          type="search"
+          placeholder="Search products by name, description, or category..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+        />
+        <select value={selectedCategory} onChange={(e) => setSelectedCategory(e.target.value)}>
+          {categories.map((category) => (
+            <option key={category} value={category}>{category}</option>
+          ))}
+        </select>
       </div>
 
       {message && <div className="alert">{message}</div>}
@@ -101,6 +152,16 @@ const Products = () => {
               onChange={(e) => setNewProduct({ ...newProduct, price: Number(e.target.value) })}
               required
             />
+            <select
+              value={newProduct.category}
+              onChange={(e) => setNewProduct({ ...newProduct, category: e.target.value })}
+              required
+            >
+              <option value="">Select Category</option>
+              {predefinedCategories.map((cat) => (
+                <option key={cat} value={cat}>{cat}</option>
+              ))}
+            </select>
             <input
               type="text"
               placeholder="Description"
@@ -128,7 +189,7 @@ const Products = () => {
       )}
 
       <div className="products-grid">
-        {products.map((product) => (
+        {filteredProducts.map((product) => (
           <div className="product-card" key={product._id}>
             <div className="product-card-header">
               <h3>{product.name}</h3>
@@ -136,6 +197,7 @@ const Products = () => {
                 {product.stock > 0 ? 'In stock' : 'Out of stock'}
               </span>
             </div>
+            <p className="product-category">Category: {product.category || 'General'}</p>
             <p className="product-description">{product.description || 'No description available.'}</p>
             <p className="product-price">${product.price.toFixed(2)}</p>
             <p className="product-seller">Seller: {product.supermarketId?.name || 'Supermarket'}</p>
@@ -157,3 +219,4 @@ const Products = () => {
 };
 
 export default Products;
+
