@@ -6,6 +6,8 @@ import Products from './pages/Products';
 import Orders from './pages/Orders';
 import RiderOrders from './pages/RiderOrders';
 import Auth from './pages/Auth';
+import Login from './pages/Login';
+import Register from './pages/Register';
 import MyOrders from './pages/MyOrders.jsx';
 import MyDeliveries from './pages/MyDeliveries';
 import PrivateRoute from './components/PrivateRoute';
@@ -34,6 +36,8 @@ function App() {
           }
         />
         <Route path="/profile" element={<Auth />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
         <Route path="/auth" element={<Navigate to="/profile" replace />} />
         <Route path="/about" element={<About />} />
         <Route path="/report" element={<Report />} />
@@ -65,6 +69,7 @@ function App() {
             </PrivateRoute>
           }
         />
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </Router>
   );

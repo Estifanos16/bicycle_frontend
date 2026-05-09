@@ -1,7 +1,8 @@
 import axios from 'axios';
 
+const baseURL = import.meta.env.VITE_API_URL || 'https://bicycle-backend16-2.onrender.com';
 const API = axios.create({
-  baseURL: `${import.meta.env.VITE_API_URL}/api`,
+  baseURL: `${baseURL}/api`,
 });
 
 // Set token for protected routes
