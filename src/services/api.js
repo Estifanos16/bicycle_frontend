@@ -3,7 +3,37 @@ import axios from 'axios';
 const baseURL = import.meta.env.VITE_API_URL || 'https://bicycle-backend16-2.onrender.com';
 const API = axios.create({
   baseURL: `${baseURL}/api`,
+  headers: {
+    'Content-Type': 'application/json'
+  }
 });
+
+// Add request interceptor for debugging
+API.interceptors.request.use(
+  (config) => {
+    console.log(`[API Request] ${config.method.toUpperCase()} ${config.url}`, config.data);
+    return config;
+  },
+  (error) => {
+    console.error('[API Request Error]', error);
+    return Promise.reject(error);
+  }
+);
+
+// Add response interceptor for debugging
+API.interceptors.response.use(
+  (response) => {
+    console.log(`[API Response] ${response.status} ${response.config.url}`, response.data);
+    return response;
+  },
+  (error) => {
+    console.error(
+      `[API Error] ${error.response?.status || 'Network Error'} ${error.config?.url}`,
+      error.response?.data || error.message
+    );
+    return Promise.reject(error);
+  }
+);
 
 // Set token for protected routes
 export const setToken = (token) => {
@@ -31,5 +61,3 @@ export const getMyDeliveries = () => API.get('/orders/my-deliveries');
 export const updateOrderStatus = (orderId, status) => API.put(`/orders/${orderId}/status`, { status });
 
 export default API;
-
-    
