@@ -51,8 +51,14 @@ a.button-secondary:hover,
   transform: translateY(-1px);
 }
 
-/* Input */
-input,
+/* Input styles for text-like controls (exclude checkboxes/radios) */
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="search"],
+input[type="tel"],
+input[type="url"],
+input[type="number"],
 textarea,
 select {
   width: 100%;
@@ -66,12 +72,34 @@ select {
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
-input:focus,
+input[type="text"]:focus,
+input[type="email"]:focus,
+input[type="password"]:focus,
+input[type="search"]:focus,
+input[type="tel"]:focus,
+input[type="url"]:focus,
+input[type="number"]:focus,
 textarea:focus,
 select:focus {
   outline: none;
   border-color: #3b82f6;
   box-shadow: 0 0 0 6px rgba(59, 130, 246, 0.12);
+}
+
+/* Roles section: align radio/checkbox and label text horizontally */
+.roles-section {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin: 8px 0;
+}
+
+.roles-section > label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
 }
 
 a {

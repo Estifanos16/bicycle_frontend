@@ -27,9 +27,7 @@ const Auth = () => {
     const handleRoleChange = (role) => {
         setFormData(prev => ({
             ...prev,
-            roles: prev.roles.includes(role)
-                ? prev.roles.filter(r => r !== role)
-                : [...prev.roles, role]
+            roles: [role]
         }));
     };
 
@@ -48,8 +46,17 @@ const Auth = () => {
                 navigate('/');
             } else {
                 const response = await registerUser(formData);
-                setMessage(response.data.message);
-                setTimeout(() => navigate('/'), 2000);
+                setMessage(response.data.message || 'Registered successfully');
+
+                // Auto-login after registration
+                try {
+                    const loginRes = await loginUser({ email: formData.email, password: formData.password });
+                    login(loginRes.data.token);
+                    navigate('/');
+                } catch (loginErr) {
+                    console.error('Auto-login failed:', loginErr);
+                    // If auto-login fails, stay on the page and show message
+                }
             }
         } catch (err) {
             setError(err.response?.data?.message || `${isLogin ? 'Login' : 'Registration'} failed`);
@@ -136,10 +143,12 @@ const Auth = () => {
 
                     {!isLogin && (
                         <div className="roles-section">
-                            <label>Select your roles:</label>
+                            <label>Select your role:</label>
                             <label>
                                 <input
-                                    type="checkbox"
+                                    type="radio"
+                                    name="role"
+                                    value="customer"
                                     checked={formData.roles.includes('customer')}
                                     onChange={() => handleRoleChange('customer')}
                                 />
@@ -147,7 +156,9 @@ const Auth = () => {
                             </label>
                             <label>
                                 <input
-                                    type="checkbox"
+                                    type="radio"
+                                    name="role"
+                                    value="supermarket"
                                     checked={formData.roles.includes('supermarket')}
                                     onChange={() => handleRoleChange('supermarket')}
                                 />
@@ -155,7 +166,9 @@ const Auth = () => {
                             </label>
                             <label>
                                 <input
-                                    type="checkbox"
+                                    type="radio"
+                                    name="role"
+                                    value="rider"
                                     checked={formData.roles.includes('rider')}
                                     onChange={() => handleRoleChange('rider')}
                                 />
