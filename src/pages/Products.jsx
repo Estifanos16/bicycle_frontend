@@ -1,9 +1,15 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { getProducts, createProduct, updateProduct, deleteProduct } from '../services/api';
 import { AuthContext } from '../context/AuthContext';
+import { Link } from 'react-router-dom';
+import { useCart } from '../context/CartContext';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 const Products = () => {
   const { user } = useContext(AuthContext);
+  const { addToCart } = useCart();
+  const location = useLocation();
+  const navigate = useNavigate();
   const [editingProduct, setEditingProduct] = useState(null);
   const [products, setProducts] = useState([]);
   const [newProduct, setNewProduct] = useState({ name: '', price: 0, description: '', category: '', stock: 0 });
@@ -42,6 +48,12 @@ const Products = () => {
 
   useEffect(() => {
     fetchProducts();
+    // initialize filters from URL params (search & category)
+    const params = new URLSearchParams(location.search);
+    const q = params.get('q') || params.get('query');
+    const category = params.get('category');
+    if (q) setSearchTerm(q);
+    if (category) setSelectedCategory(category);
   }, []);
 
   const handleCreateOrUpdate = async (e) => {
@@ -184,7 +196,7 @@ const Products = () => {
         <div className="card alert">
           <h3>Customer Shop</h3>
           <p>Go to the shop page to add products to your cart and place an order.</p>
-          <a href="/orders" className="button-secondary">Go to Shop</a>
+          <Link to="/orders" className="button-secondary">Go to Shop</Link>
         </div>
       )}
 
@@ -211,6 +223,9 @@ const Products = () => {
                 </button>
               </div>
             )}
+            <button className="add-btn" disabled={product.stock <= 0} onClick={() => { addToCart(product); navigate('/orders'); }}>
+              Add to Cart
+            </button>
           </div>
         ))}
       </div>

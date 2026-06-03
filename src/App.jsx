@@ -2,6 +2,7 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Navbar from './components/Navbar';
+import CategoryBar from './components/CategoryBar';
 import Products from './pages/Products';
 import Orders from './pages/Orders';
 import RiderOrders from './pages/RiderOrders';
@@ -23,6 +24,7 @@ function App() {
   return (
     <Router>
       <Navbar />
+      <CategoryBar />
       <Routes>
         <Route path="/" element={<Dashboard />} />
         <Route path="/dashboard" element={<Dashboard />} />
