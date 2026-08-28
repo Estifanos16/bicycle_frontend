@@ -54,7 +54,7 @@ const Products = () => {
     const category = params.get('category');
     if (q) setSearchTerm(q);
     if (category) setSelectedCategory(category);
-  }, []);
+  }, [location.search]);
 
   const handleCreateOrUpdate = async (e) => {
     e.preventDefault();

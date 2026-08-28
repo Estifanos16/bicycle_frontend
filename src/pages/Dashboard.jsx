@@ -36,84 +36,73 @@ const Dashboard = () => {
 
   return (
     <div className="container">
-      <div className="page-header">
-        <h1>Bicycle App</h1>
-        <p className="muted">The place where supermarkets publish products, customers shop, and riders deliver orders.</p>
-      </div>
-
-      {/* Category bar */}
-      <div className="category-bar">
-        <div className="category"><div className="icon">E</div>Electronics</div>
-        <div className="category"><div className="icon">C</div>Clothing</div>
-        <div className="category"><div className="icon">H</div>Home</div>
-        <div className="category"><div className="icon">B</div>Beauty</div>
-        <div className="category"><div className="icon">S</div>Sports</div>
-        <div className="category"><div className="icon">T</div>Toys</div>
-        <div className="category"><div className="icon">M</div>Motors</div>
+      <div className="page-header" style={{padding:'6px 0'}}>
+        <h1 style={{fontSize:'1.2rem',margin:'0 0 2px 0'}}>Bicycle App</h1>
+        <p className="muted" style={{fontSize:'0.7rem',margin:0}}>Supermarkets • Customers • Riders</p>
       </div>
 
       {/* Hero + Side promos */}
-      <section className="hero">
+      <section className="hero" style={{gap:'6px'}}>
         <div className="hero-main">
-          <div style={{padding:24}}>
-            <h2 style={{margin:0}}>Mega Summer Sale — Up to 70% OFF</h2>
-            <p className="muted">Top brands, fastest shipping, and exclusive limited-time deals. Grab them before they're gone.</p>
-            <div style={{display:'flex',gap:10,marginTop:12}}>
-              <Link to="/products" className="add-btn" style={{background:'var(--demo-color-secondary)'}}>Shop Deals</Link>
-              <Link to="/products" className="add-btn" style={{background:'#fff',color:'var(--demo-color-primary)',border:'1px solid var(--color-border)'}}>See All</Link>
+          <div style={{padding:'10px'}}>
+            <h2 style={{margin:'0 0 3px 0',fontSize:'0.95rem'}}>Up to 70% OFF</h2>
+            <p className="muted" style={{fontSize:'0.7rem',margin:'0 0 6px 0'}}>Top brands, fastest shipping, exclusive deals.</p>
+            <div style={{display:'flex',gap:'6px'}}>
+              <Link to="/products" className="add-btn" style={{background:'var(--demo-color-secondary)',padding:'5px 10px',fontSize:'0.75rem'}}>Shop</Link>
+              <Link to="/products" className="add-btn" style={{background:'#fff',color:'var(--demo-color-primary)',border:'1px solid var(--color-border)',padding:'5px 10px',fontSize:'0.75rem'}}>All</Link>
             </div>
           </div>
         </div>
 
-        <aside className="hero-side">
-          <div className="promo">
-            <img src="https://images.unsplash.com/photo-1513708929411-7e4ee23f45d0?q=80&w=400&auto=format&fit=crop" alt="Top Picks" style={{width:72,height:72,objectFit:'cover'}} />
+        <aside className="hero-side" style={{gap:'4px'}}>
+          <div className="promo" style={{padding:'6px'}}>
+            <img src="https://images.unsplash.com/photo-1513708929411-7e4ee23f45d0?q=80&w=400&auto=format&fit=crop" alt="Top Picks" style={{width:'36px',height:'36px',objectFit:'cover'}} />
             <div>
-              <div style={{fontWeight:700}}>Top Picks</div>
-              <div className="small muted">Curated for you</div>
+              <div style={{fontWeight:600,fontSize:'0.75rem'}}>Top Picks</div>
+              <div className="small muted" style={{fontSize:'0.65rem'}}>For you</div>
             </div>
           </div>
-          <div className="promo">
-            <img src="https://images.unsplash.com/photo-1542291026-7eec264c27ff?q=80&w=400&auto=format&fit=crop" alt="Daily Deals" style={{width:72,height:72,objectFit:'cover'}} />
+          <div className="promo" style={{padding:'6px'}}>
+            <img src="https://images.unsplash.com/photo-1542291026-7eec264c27ff?q=80&w=400&auto=format&fit=crop" alt="Daily Deals" style={{width:'36px',height:'36px',objectFit:'cover'}} />
             <div>
-              <div style={{fontWeight:700}}>Daily Deals</div>
-              <div className="small muted">Limited quantities</div>
+              <div style={{fontWeight:600,fontSize:'0.75rem'}}>Deals</div>
+              <div className="small muted" style={{fontSize:'0.65rem'}}>Limited</div>
             </div>
           </div>
-          <div className="promo" style={{justifyContent:'center'}}>
+          <div className="promo" style={{justifyContent:'center',padding:'6px'}}>
             <div style={{textAlign:'center',width:'100%'}}>
-              <div style={{fontWeight:800,color:'var(--demo-color-primary)',fontSize:'1.05rem'}}>New Arrival</div>
-              <div className="small muted">Explore now</div>
+              <div style={{fontWeight:700,color:'var(--demo-color-primary)',fontSize:'0.75rem'}}>New</div>
+              <div className="small muted" style={{fontSize:'0.65rem'}}>Explore</div>
             </div>
           </div>
         </aside>
       </section>
 
       {/* Flash sale + products grid */}
-      <div className="section">
-        <div className="header" style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
-          <h3 style={{margin:0}}>Flash Sale</h3>
-          <div className="flash">
-            <div style={{fontWeight:800,color:'var(--demo-color-primary)',marginRight:12}}>Hot Deals</div>
-            <div className="countdown">
-              <div className="box"><span>06</span>h</div>
-              <div className="box"><span>23</span>m</div>
-              <div className="box"><span>12</span>s</div>
+      <div className="section" style={{marginTop:'10px'}}>
+        <div className="header" style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'8px'}}>
+          <h3 style={{margin:0,fontSize:'0.9rem'}}>Flash Sale</h3>
+          <div className="flash" style={{display:'flex',alignItems:'center'}}>
+            <div style={{fontWeight:700,color:'var(--demo-color-primary)',marginRight:'6px',fontSize:'0.75rem'}}>Hot</div>
+            <div className="countdown" style={{display:'flex',gap:'3px'}}>
+              <div className="box" style={{padding:'3px 5px',fontSize:'0.7rem'}}><span>06</span>h</div>
+              <div className="box" style={{padding:'3px 5px',fontSize:'0.7rem'}}><span>23</span>m</div>
+              <div className="box" style={{padding:'3px 5px',fontSize:'0.7rem'}}><span>12</span>s</div>
             </div>
           </div>
         </div>
 
-        <div className="products-grid">
+        <div className="products-grid" style={{gap:'8px'}}>
           {products.slice(0,8).map((p) => (
-            <article className="product-card" key={p._id}>
-              <div className="product-media"><img src={`https://source.unsplash.com/collection/190727/800x800?sig=${p._id}`} alt={p.name} style={{width:'100%',height:'100%',objectFit:'cover'}} /></div>
-              <div className="product-body">
-                <div className="product-title">{p.name}</div>
-                <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
-                  <div className="rating"><span style={{color:'#f5b450'}}>★</span><span className="small muted" style={{marginLeft:6}}>{(p.stock || 0) > 0 ? 'In stock' : 'Out'}</span></div>
-                  <div className="price">${p.price?.toFixed(2)}</div>
+            <article className="product-card" key={p._id} style={{padding:'8px'}}>
+              <div className="product-media" style={{height:'120px'}}><img src={`https://via.placeholder.com/800x800?text=${encodeURIComponent(p.name)}`} alt={p.name} style={{width:'100%',height:'100%',objectFit:'cover'}} /></div>
+              <div className="product-body" style={{padding:'6px 0 0 0'}}>
+                <div className="product-title" style={{fontSize:'0.85rem',marginBottom:'4px',lineHeight:'1.2'}}>{p.name}</div>
+                <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'6px'}}>
+                  <div className="rating"><span style={{color:'#f5b450',fontSize:'0.8rem'}}>★</span><span className="small muted" style={{marginLeft:'3px',fontSize:'0.7rem'}}>{(p.stock || 0) > 0 ? 'In stock' : 'Out of stock'}</span></div>
+                  <div className="price" style={{fontSize:'0.9rem'}}>${p.price?.toFixed(2)}</div>
                 </div>
-                <button className="add-btn" onClick={() => { addToCart(p); navigate('/orders'); }}>Add to Cart</button>
+                <button className="add-btn" onClick={() => { addToCart(p); navigate('/orders'); }} style={{padding:'5px 10px',fontSize:'0.75rem'}}>Add to Cart</button>
               </div>
             </article>
           ))}

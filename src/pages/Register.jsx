@@ -1,4 +1,4 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import { registerUser, loginUser } from '../services/api';
 import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
@@ -11,6 +11,13 @@ const Register = () => {
     const [message, setMessage] = useState('');
     const navigate = useNavigate();
     const { login } = useContext(AuthContext);
+
+    useEffect(() => {
+        document.body.classList.add('auth-page');
+        return () => {
+            document.body.classList.remove('auth-page');
+        };
+    }, []);
 
     const handleRoleChange = (role) => {
         setRole(role);
@@ -40,34 +47,51 @@ const Register = () => {
     };
 
     return (
-        <div className="container">
-            <div className="page-header">
-                <h2>Register</h2>
-                <p>Create your account and select your roles in the Bicycle App.</p>
+        <div className="auth-container">
+            <div className="auth-left">
+                <div className="auth-logo">
+                    <div className="auth-logo-mark">B</div>
+                    <div className="auth-logo-text">Bicycle App</div>
+                </div>
+                <div className="auth-stars">
+                    <span>⭐</span>
+                    <span>⭐</span>
+                    <span>⭐</span>
+                    <span>⭐</span>
+                    <span>⭐</span>
+                </div>
+                <p className="auth-inspiration">Your trusted delivery partner for everything you need</p>
             </div>
-            {message && <div className="alert">{message}</div>}
-            <div className="card card-form">
-                <form onSubmit={handleSubmit} className="product-form">
-                    <input type="text" placeholder="Name" value={name} onChange={e => setName(e.target.value)} required />
-                    <input type="email" placeholder="Email" value={email} onChange={e => setEmail(e.target.value)} required />
-                    <input type="password" placeholder="Password" value={password} onChange={e => setPassword(e.target.value)} required />
-                    <div className="roles-section">
-                        <label>Select your role:</label>
-                        <label>
-                            <input type="radio" name="role" value="customer" checked={role === 'customer'} onChange={() => handleRoleChange('customer')} />
-                            Customer
-                        </label>
-                        <label>
-                            <input type="radio" name="role" value="supermarket" checked={role === 'supermarket'} onChange={() => handleRoleChange('supermarket')} />
-                            Supermarket Owner
-                        </label>
-                        <label>
-                            <input type="radio" name="role" value="rider" checked={role === 'rider'} onChange={() => handleRoleChange('rider')} />
-                            Rider
-                        </label>
-                    </div>
-                    <button type="submit">Register</button>
-                </form>
+            <div className="auth-right">
+                <div className="auth-form-container">
+                    <h2>Create Account</h2>
+                    <p>Join us and start your journey</p>
+                    {message && <div className="alert">{message}</div>}
+                    <form onSubmit={handleSubmit} className="auth-form">
+                        <input type="text" placeholder="Name" value={name} onChange={e => setName(e.target.value)} required />
+                        <input type="email" placeholder="Email" value={email} onChange={e => setEmail(e.target.value)} required />
+                        <input type="password" placeholder="Password" value={password} onChange={e => setPassword(e.target.value)} required />
+                        <div className="auth-roles">
+                            <label>Select your role:</label>
+                            <label>
+                                <input type="radio" name="role" value="customer" checked={role === 'customer'} onChange={() => handleRoleChange('customer')} />
+                                Customer
+                            </label>
+                            <label>
+                                <input type="radio" name="role" value="supermarket" checked={role === 'supermarket'} onChange={() => handleRoleChange('supermarket')} />
+                                Supermarket Owner
+                            </label>
+                            <label>
+                                <input type="radio" name="role" value="rider" checked={role === 'rider'} onChange={() => handleRoleChange('rider')} />
+                                Rider
+                            </label>
+                        </div>
+                        <button type="submit">Register</button>
+                    </form>
+                    <p className="auth-switch">
+                        Already have an account? <a href="/login">Login</a>
+                    </p>
+                </div>
             </div>
         </div>
     );

@@ -1,7 +1,8 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import { loginUser, registerUser } from '../services/api';
 import { AuthContext } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import bicycleImage from '../assets/Bicycle delivery image.jpg';
 
 const Auth = () => {
     const { login } = useContext(AuthContext);
@@ -15,6 +16,13 @@ const Auth = () => {
     const [error, setError] = useState('');
     const [message, setMessage] = useState('');
     const navigate = useNavigate();
+
+    useEffect(() => {
+        document.body.classList.add('auth-page');
+        return () => {
+            document.body.classList.remove('auth-page');
+        };
+    }, []);
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
@@ -76,109 +84,107 @@ const Auth = () => {
     };
 
     return (
-        <div className="container">
-            <div className="page-header auth-page-header">
-                <div className="auth-page-top">
-                    <span className="auth-page-icon">👤</span>
-                    <div>
-                        <h2>Account Profile</h2>
-                        <p>{isLogin ? 'Sign in to manage orders, favorites, and delivery status.' : 'Create your account and start shopping with Bicycle App.'}</p>
+        <div className="auth-container">
+            <button className="auth-close-btn" onClick={() => navigate('/')}>✕</button>
+            <div className="auth-left">
+                <img src={bicycleImage} alt="Bicycle Delivery" className="auth-image" />
+                <div className="auth-overlay">
+                    <div className="auth-stars">
+                        <span>⭐</span>
+                        <span>⭐</span>
+                        <span>⭐</span>
+                        <span>⭐</span>
+                        <span>⭐</span>
                     </div>
+                    <p className="auth-inspiration">Your trusted delivery partner for everything you need</p>
                 </div>
             </div>
-
-            {(error || message) && (
-                <div className={`alert ${error ? 'alert-error' : 'alert-success'}`}>
-                    {error || message}
-                </div>
-            )}
-
-            <div className="card card-form">
-                <div className="auth-toggle">
-                    <button
-                        type="button"
-                        className={`auth-toggle-btn ${isLogin ? 'active' : ''}`}
-                        onClick={() => setIsLogin(true)}
-                    >
-                        Login
-                    </button>
-                    <button
-                        type="button"
-                        className={`auth-toggle-btn ${!isLogin ? 'active' : ''}`}
-                        onClick={() => setIsLogin(false)}
-                    >
-                        Register
-                    </button>
-                </div>
-
-                <form onSubmit={handleSubmit} className="product-form">
-                    {!isLogin && (
-                        <input
-                            type="text"
-                            name="name"
-                            placeholder="Name"
-                            value={formData.name}
-                            onChange={handleInputChange}
-                            required
-                        />
-                    )}
-
-                    <input
-                        type="email"
-                        name="email"
-                        placeholder="Email"
-                        value={formData.email}
-                        onChange={handleInputChange}
-                        required
-                    />
-
-                    <input
-                        type="password"
-                        name="password"
-                        placeholder="Password"
-                        value={formData.password}
-                        onChange={handleInputChange}
-                        required
-                    />
-
-                    {!isLogin && (
-                        <div className="roles-section">
-                            <label>Select your role:</label>
-                            <label>
-                                <input
-                                    type="radio"
-                                    name="role"
-                                    value="customer"
-                                    checked={formData.roles.includes('customer')}
-                                    onChange={() => handleRoleChange('customer')}
-                                />
-                                Customer
-                            </label>
-                            <label>
-                                <input
-                                    type="radio"
-                                    name="role"
-                                    value="supermarket"
-                                    checked={formData.roles.includes('supermarket')}
-                                    onChange={() => handleRoleChange('supermarket')}
-                                />
-                                Supermarket Owner
-                            </label>
-                            <label>
-                                <input
-                                    type="radio"
-                                    name="role"
-                                    value="rider"
-                                    checked={formData.roles.includes('rider')}
-                                    onChange={() => handleRoleChange('rider')}
-                                />
-                                Rider
-                            </label>
+            <div className="auth-right">
+                <div className="auth-form-container">
+                    <h2>{isLogin ? 'Welcome Back' : 'Create Account'}</h2>
+                    <p>{isLogin ? 'Sign in to manage orders, favorites, and delivery status' : 'Join us and start your journey'}</p>
+                    {(error || message) && (
+                        <div className={`alert ${error ? 'alert-error' : 'alert-success'}`}>
+                            {error || message}
                         </div>
                     )}
+                    <form onSubmit={handleSubmit} className="auth-form">
+                        {!isLogin && (
+                            <div className="form-group">
+                                <label>Full Name</label>
+                                <input
+                                    type="text"
+                                    name="name"
+                                    placeholder="Enter your full name"
+                                    value={formData.name}
+                                    onChange={handleInputChange}
+                                    required
+                                />
+                            </div>
+                        )}
 
-                    <button type="submit">{isLogin ? 'Login' : 'Register'}</button>
-                </form>
+                        <div className="form-group">
+                            <label>Email Address</label>
+                            <input
+                                type="email"
+                                name="email"
+                                placeholder="Enter your email"
+                                value={formData.email}
+                                onChange={handleInputChange}
+                                required
+                            />
+                        </div>
+
+                        <div className="form-group">
+                            <label>Password</label>
+                            <input
+                                type="password"
+                                name="password"
+                                placeholder="Enter your password"
+                                value={formData.password}
+                                onChange={handleInputChange}
+                                required
+                            />
+                        </div>
+
+                        {!isLogin && (
+                            <div className="auth-roles">
+                                <label>Select your role:</label>
+                                <div className="role-tiles">
+                                    <div 
+                                        className={`role-tile ${formData.roles.includes('customer') ? 'active' : ''}`}
+                                        onClick={() => handleRoleChange('customer')}
+                                    >
+                                        <span className="role-icon">🛒</span>
+                                        <span>Customer</span>
+                                    </div>
+                                    <div 
+                                        className={`role-tile ${formData.roles.includes('supermarket') ? 'active' : ''}`}
+                                        onClick={() => handleRoleChange('supermarket')}
+                                    >
+                                        <span className="role-icon">🏪</span>
+                                        <span>Supermarket Owner</span>
+                                    </div>
+                                    <div 
+                                        className={`role-tile ${formData.roles.includes('rider') ? 'active' : ''}`}
+                                        onClick={() => handleRoleChange('rider')}
+                                    >
+                                        <span className="role-icon">🚴</span>
+                                        <span>Rider</span>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        <button type="submit">{isLogin ? 'Login' : 'Register'}</button>
+                    </form>
+                    <p className="auth-switch">
+                        {isLogin ? "Don't have an account? " : "Already have an account? "}
+                        <a href="#" onClick={(e) => { e.preventDefault(); toggleMode(); }}>
+                            {isLogin ? 'Register' : 'Login'}
+                        </a>
+                    </p>
+                </div>
             </div>
         </div>
     );

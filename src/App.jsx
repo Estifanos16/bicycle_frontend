@@ -1,6 +1,6 @@
 // src/App.jsx
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import CategoryBar from './components/CategoryBar';
 import Products from './pages/Products';
@@ -20,11 +20,15 @@ import DeliveryStatus from './pages/DeliveryStatus';
 import Favorites from './pages/Favorites';
 import Saved from './pages/Saved';
 
-function App() {
+function AppContent() {
+  const location = useLocation();
+  const hideNavbar = location.pathname === '/login' || location.pathname === '/register' || location.pathname === '/profile';
+  const hideCategoryBar = location.pathname === '/login' || location.pathname === '/register' || location.pathname === '/profile';
+
   return (
-    <Router>
-      <Navbar />
-      <CategoryBar />
+    <>
+      {!hideNavbar && <Navbar />}
+      {!hideCategoryBar && <CategoryBar />}
       <Routes>
         <Route path="/" element={<Dashboard />} />
         <Route path="/dashboard" element={<Dashboard />} />
@@ -73,6 +77,14 @@ function App() {
         />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
+    </>
+  );
+}
+
+function App() {
+  return (
+    <Router>
+      <AppContent />
     </Router>
   );
 }
