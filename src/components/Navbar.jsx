@@ -2,9 +2,11 @@
 import React, { useContext, useEffect, useRef, useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
+import { useVendor } from '../context/VendorContext';
 
 const Navbar = () => {
   const { user, logout } = useContext(AuthContext);
+  const { vendorProfile } = useVendor();
   const [showDropdown, setShowDropdown] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [searchExpanded, setSearchExpanded] = useState(false);
@@ -79,8 +81,17 @@ const Navbar = () => {
     <nav className="nav">
       <div className="nav-left">
         <Link to="/" className="logo" onClick={closeMobileMenu}>
-          <div className="mark">B</div>
-          <div>Bicycle App</div>
+          {isSupermarket && vendorProfile?.branding?.storeLogo ? (
+            <>
+              <img src={vendorProfile.branding.storeLogo} alt="Store Logo" style={{width: '32px', height: '32px', borderRadius: '50%', objectFit: 'cover'}} />
+              <div>{vendorProfile.branding.storeName || 'Bicycle App'}</div>
+            </>
+          ) : (
+            <>
+              <div className="mark">B</div>
+              <div>Bicycle App</div>
+            </>
+          )}
         </Link>
         {!searchExpanded && (
           <>
@@ -92,8 +103,9 @@ const Navbar = () => {
               {isSupermarket ? (
                 <Link to="/products" onClick={closeMobileMenu} style={{color: location.pathname === '/products' ? 'var(--color-primary)' : '', fontWeight: location.pathname === '/products' ? '700' : ''}}>Manage Products</Link>
               ) : (
-                <Link to="/products" onClick={closeMobileMenu} style={{color: location.pathname === '/products' ? 'var(--color-primary)' : '', fontWeight: location.pathname === '/products' ? '700' : ''}}>Products</Link>
+                <Link to="/shop" onClick={closeMobileMenu} style={{color: location.pathname === '/shop' ? 'var(--color-primary)' : '', fontWeight: location.pathname === '/shop' ? '700' : ''}}>Products</Link>
               )}
+              {isSupermarket && <Link to="/vendor/settings" onClick={closeMobileMenu} style={{color: location.pathname === '/vendor/settings' ? 'var(--color-primary)' : '', fontWeight: location.pathname === '/vendor/settings' ? '700' : ''}}>Store Settings</Link>}
               {isCustomer && <Link to="/orders" onClick={closeMobileMenu} style={{color: location.pathname === '/orders' ? 'var(--color-primary)' : '', fontWeight: location.pathname === '/orders' ? '700' : ''}}>Shop</Link>}
               {isCustomer && <Link to="/my-orders" onClick={closeMobileMenu} style={{color: location.pathname === '/my-orders' ? 'var(--color-primary)' : '', fontWeight: location.pathname === '/my-orders' ? '700' : ''}}>My Orders</Link>}
               {isRider && <Link to="/rider-orders" onClick={closeMobileMenu} style={{color: location.pathname === '/rider-orders' ? 'var(--color-primary)' : '', fontWeight: location.pathname === '/rider-orders' ? '700' : ''}}>Pending Orders</Link>}
@@ -156,8 +168,19 @@ const Navbar = () => {
                 </>
               ) : (
                 <>
+                  {isSupermarket && (
+                    <>
+                      <div className="dropdown-item" onClick={() => handleDropdownItemClick('/products')}>
+                        Manage Products
+                      </div>
+                    </>
+                  )}
+
                   {isCustomer && (
                     <>
+                      <div className="dropdown-item" onClick={() => handleDropdownItemClick('/shop')}>
+                        Shop Products
+                      </div>
                       <div className="dropdown-item" onClick={() => handleDropdownItemClick('/my-orders')}>
                         My Orders
                       </div>

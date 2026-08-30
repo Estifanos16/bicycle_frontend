@@ -19,11 +19,16 @@ import Payment from './pages/Payment';
 import DeliveryStatus from './pages/DeliveryStatus';
 import Favorites from './pages/Favorites';
 import Saved from './pages/Saved';
+import VendorSettings from './pages/VendorSettings';
+import VendorDashboard from './pages/VendorDashboard';
+import Storefront from './pages/Storefront';
+import VendorProducts from './pages/VendorProducts';
+import { VendorProvider } from './context/VendorContext';
 
 function AppContent() {
   const location = useLocation();
   const hideNavbar = location.pathname === '/login' || location.pathname === '/register' || location.pathname === '/profile';
-  const hideCategoryBar = location.pathname === '/login' || location.pathname === '/register' || location.pathname === '/profile';
+  const hideCategoryBar = location.pathname === '/login' || location.pathname === '/register' || location.pathname === '/profile' || location.pathname === '/vendor/settings' || location.pathname === '/products';
 
   return (
     <>
@@ -32,7 +37,15 @@ function AppContent() {
       <Routes>
         <Route path="/" element={<Dashboard />} />
         <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/products" element={<Products />} />
+        <Route
+          path="/products"
+          element={
+            <PrivateRoute roles={['supermarket']}>
+              <VendorProducts />
+            </PrivateRoute>
+          }
+        />
+        <Route path="/shop" element={<Products />} />
         <Route
           path="/orders"
           element={
@@ -51,6 +64,23 @@ function AppContent() {
         <Route path="/delivery-status" element={<DeliveryStatus />} />
         <Route path="/favorites" element={<Favorites />} />
         <Route path="/saved" element={<Saved />} />
+        <Route
+          path="/vendor/settings"
+          element={
+            <PrivateRoute roles={['supermarket']}>
+              <VendorSettings />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/vendor/dashboard"
+          element={
+            <PrivateRoute roles={['supermarket']}>
+              <VendorDashboard />
+            </PrivateRoute>
+          }
+        />
+        <Route path="/store/:storeSlug" element={<Storefront />} />
         <Route
           path="/rider-orders"
           element={
@@ -83,9 +113,11 @@ function AppContent() {
 
 function App() {
   return (
-    <Router>
-      <AppContent />
-    </Router>
+    <VendorProvider>
+      <Router>
+        <AppContent />
+      </Router>
+    </VendorProvider>
   );
 }
 

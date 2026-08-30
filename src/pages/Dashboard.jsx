@@ -13,6 +13,8 @@ const Dashboard = () => {
     const fetchProducts = async () => {
       try {
         const response = await getProducts();
+        console.log('Dashboard - Fetched products:', response.data);
+        console.log('Dashboard - First product structure:', response.data[0]);
         setProducts(response.data);
       } catch (err) {
         console.error('Failed to fetch products:', err);
@@ -48,8 +50,8 @@ const Dashboard = () => {
             <h2 style={{margin:'0 0 3px 0',fontSize:'0.95rem'}}>Up to 70% OFF</h2>
             <p className="muted" style={{fontSize:'0.7rem',margin:'0 0 6px 0'}}>Top brands, fastest shipping, exclusive deals.</p>
             <div style={{display:'flex',gap:'6px'}}>
-              <Link to="/products" className="add-btn" style={{background:'var(--demo-color-secondary)',padding:'5px 10px',fontSize:'0.75rem'}}>Shop</Link>
-              <Link to="/products" className="add-btn" style={{background:'#fff',color:'var(--demo-color-primary)',border:'1px solid var(--color-border)',padding:'5px 10px',fontSize:'0.75rem'}}>All</Link>
+              <Link to="/shop" className="add-btn" style={{background:'var(--demo-color-secondary)',padding:'5px 10px',fontSize:'0.75rem'}}>Shop</Link>
+              <Link to="/shop" className="add-btn" style={{background:'#fff',color:'var(--demo-color-primary)',border:'1px solid var(--color-border)',padding:'5px 10px',fontSize:'0.75rem'}}>All</Link>
             </div>
           </div>
         </div>
@@ -93,9 +95,15 @@ const Dashboard = () => {
         </div>
 
         <div className="products-grid" style={{gap:'8px'}}>
-          {products.slice(0,8).map((p) => (
+          {products.map((p) => (
             <article className="product-card" key={p._id} style={{padding:'8px'}}>
-              <div className="product-media" style={{height:'120px'}}><img src={`https://via.placeholder.com/800x800?text=${encodeURIComponent(p.name)}`} alt={p.name} style={{width:'100%',height:'100%',objectFit:'cover'}} /></div>
+              <div className="product-media" style={{height:'120px'}}>
+                <img 
+                  src={(p.images && p.images[0]) || p.image || `https://via.placeholder.com/800x800?text=${encodeURIComponent(p.name)}`} 
+                  alt={p.name} 
+                  style={{width:'100%',height:'100%',objectFit:'cover'}} 
+                />
+              </div>
               <div className="product-body" style={{padding:'6px 0 0 0'}}>
                 <div className="product-title" style={{fontSize:'0.85rem',marginBottom:'4px',lineHeight:'1.2'}}>{p.name}</div>
                 <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'6px'}}>
