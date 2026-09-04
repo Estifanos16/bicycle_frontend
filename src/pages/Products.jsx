@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { getProducts, createProduct, updateProduct, deleteProduct } from '../services/api';
+import { getProducts, getVendorProducts, createProduct, updateProduct, deleteProduct } from '../services/api';
 import { AuthContext } from '../context/AuthContext';
 import { Link } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
@@ -38,8 +38,40 @@ const Products = () => {
 
   const fetchProducts = async () => {
     try {
-      const response = await getProducts();
-      setProducts(response.data);
+      const urlParams = new URLSearchParams(location.search);
+      const vendorIdParam = urlParams.get('vendorId');
+      const categoryParam = urlParams.get('category');
+      const qParam = urlParams.get('q') || urlParams.get('query');
+
+      const userRoles = user?.roles || [];
+      const isVendorUser = userRoles.includes('supermarket') || 
+                           userRoles.includes('vendor') || 
+                           userRoles.includes('vendor_staff') || 
+                           userRoles.includes('supermarket_owner') || 
+                           user?.role === 'vendor';
+      const vendorId = vendorIdParam || (isVendorUser ? (user?.vendorId || user?.supermarketId || user?._id || user?.id) : null);
+
+      const requestParams = {};
+      if (vendorId) requestParams.vendorId = vendorId;
+      if (categoryParam && categoryParam !== 'All') requestParams.category = categoryParam;
+      if (qParam) requestParams.q = qParam;
+
+      const response = await getProducts(requestParams);
+      let fetchedProducts = response.data || [];
+      if (isVendorUser) {
+        const userVendorIds = [
+          user?.vendorId?._id || user?.vendorId,
+          user?.supermarketId?._id || user?.supermarketId,
+          user?._id,
+          user?.id
+        ].filter(Boolean).map(id => id.toString());
+
+        fetchedProducts = fetchedProducts.filter(p => {
+          const pVendorId = (p.supermarketId?._id || p.supermarketId || p.vendorId?._id || p.vendorId || p.vendor?._id || p.vendor)?.toString();
+          return pVendorId && userVendorIds.includes(pVendorId);
+        });
+      }
+      setProducts(fetchedProducts);
     } catch (err) {
       console.error(err);
       setMessage('Unable to load products.');
@@ -54,7 +86,7 @@ const Products = () => {
     const category = params.get('category');
     if (q) setSearchTerm(q);
     if (category) setSelectedCategory(category);
-  }, [location.search]);
+  }, [location.search, user]);
 
   const handleCreateOrUpdate = async (e) => {
     e.preventDefault();
@@ -210,7 +242,7 @@ const Products = () => {
               </span>
             </div>
             <p className="product-category">Category: {product.category || 'General'}</p>
-            <p className="product-description">{product.description || 'No description available.'}</p>
+            <p className="product-description text-xs text-gray-500 line-clamp-2">{product.description || 'No description available.'}</p>
             <p className="product-price">${product.price.toFixed(2)}</p>
             <p className="product-seller">Seller: {product.supermarketId?.name || 'Supermarket'}</p>
             {user?.roles?.includes('supermarket') && product.supermarketId?._id === user._id && (

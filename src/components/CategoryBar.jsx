@@ -146,7 +146,7 @@ const CategoryBar = () => {
           {categories.map((category) => (
             <Link
               key={category.key}
-              to={`/products?category=${encodeURIComponent(category.label)}`}
+              to={`/shop?category=${encodeURIComponent(category.label)}`}
               className="category"
               style={{
                 display: 'flex',

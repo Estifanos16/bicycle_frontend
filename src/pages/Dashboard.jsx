@@ -1,7 +1,7 @@
 import React, { useContext, useState, useEffect } from 'react';
 import { AuthContext } from '../context/AuthContext';
 import { Link } from 'react-router-dom';
-import { getProducts } from '../services/api';
+import { getProducts, getVendorProducts } from '../services/api';
 import { useCart } from '../context/CartContext';
 import { useNavigate } from 'react-router-dom';
 
@@ -12,16 +12,38 @@ const Dashboard = () => {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const response = await getProducts();
+        const userRoles = user?.roles || [];
+        const isVendorUser = userRoles.includes('supermarket') || 
+                             userRoles.includes('vendor') || 
+                             userRoles.includes('vendor_staff') || 
+                             userRoles.includes('supermarket_owner') || 
+                             user?.role === 'vendor';
+        const vendorId = user?.vendorId || user?.supermarketId || user?._id || user?.id;
+        const params = isVendorUser && vendorId ? { vendorId } : {};
+        const response = await getProducts(params);
         console.log('Dashboard - Fetched products:', response.data);
-        console.log('Dashboard - First product structure:', response.data[0]);
-        setProducts(response.data);
+        
+        let fetchedProducts = response.data || [];
+        if (isVendorUser) {
+          const userVendorIds = [
+            user?.vendorId?._id || user?.vendorId,
+            user?.supermarketId?._id || user?.supermarketId,
+            user?._id,
+            user?.id
+          ].filter(Boolean).map(id => id.toString());
+
+          fetchedProducts = fetchedProducts.filter(p => {
+            const pVendorId = (p.supermarketId?._id || p.supermarketId || p.vendorId?._id || p.vendorId || p.vendor?._id || p.vendor)?.toString();
+            return pVendorId && userVendorIds.includes(pVendorId);
+          });
+        }
+        setProducts(fetchedProducts);
       } catch (err) {
         console.error('Failed to fetch products:', err);
       }
     };
     fetchProducts();
-  }, []);
+  }, [user]);
 
   // Get recent products (last 5 by createdAt)
   const recentProducts = [...products]
@@ -105,7 +127,12 @@ const Dashboard = () => {
                 />
               </div>
               <div className="product-body" style={{padding:'6px 0 0 0'}}>
-                <div className="product-title" style={{fontSize:'0.85rem',marginBottom:'4px',lineHeight:'1.2'}}>{p.name}</div>
+                <div className="product-title" style={{fontSize:'0.85rem',marginBottom:'2px',lineHeight:'1.2'}}>{p.name}</div>
+                {p.description && (
+                  <p className="product-description text-xs text-gray-500 line-clamp-2" style={{fontSize:'0.75rem', color:'#6B7280', margin:'2px 0 4px 0', lineHeight:'1.2'}} title={p.description}>
+                    {p.description}
+                  </p>
+                )}
                 <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'6px'}}>
                   <div className="rating"><span style={{color:'#f5b450',fontSize:'0.8rem'}}>★</span><span className="small muted" style={{marginLeft:'3px',fontSize:'0.7rem'}}>{(p.stock || 0) > 0 ? 'In stock' : 'Out of stock'}</span></div>
                   <div className="price" style={{fontSize:'0.9rem'}}>${p.price?.toFixed(2)}</div>

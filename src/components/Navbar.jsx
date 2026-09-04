@@ -75,7 +75,12 @@ const Navbar = () => {
 
   const isCustomer = user?.roles?.includes('customer');
   const isRider = user?.roles?.includes('rider');
-  const isSupermarket = user?.roles?.includes('supermarket');
+  const userRoles = user?.roles || [];
+  const isSupermarket = userRoles.includes('supermarket') || 
+                        userRoles.includes('vendor') || 
+                        userRoles.includes('vendor_staff') || 
+                        userRoles.includes('supermarket_owner') || 
+                        user?.role === 'vendor';
 
   return (
     <nav className="nav">

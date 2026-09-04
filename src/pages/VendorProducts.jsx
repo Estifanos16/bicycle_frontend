@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { getProducts, createProduct, updateProduct, deleteProduct } from '../services/api';
+import { getVendorProducts, createProduct, updateProduct, deleteProduct } from '../services/api';
 import { AuthContext } from '../context/AuthContext';
+import ProductModal from '../components/ProductModal';
 
 const VendorProducts = () => {
   const { user } = useContext(AuthContext);
@@ -51,40 +52,21 @@ const VendorProducts = () => {
   const fetchProducts = async () => {
     setLoading(true);
     setError('');
+    const userStorageKey = `vendor_products_${user?.id || user?._id || user?.vendorId || 'guest'}`;
     
     try {
-      // Try to fetch from API first
-      const response = await getProducts();
-      console.log('Fetched products:', response.data);
-      console.log('Current user:', user);
+      // Fetch strictly vendor-scoped products from backend endpoint
+      const response = await getVendorProducts();
+      console.log('Fetched vendor-scoped products:', response.data);
       
-      // Filter products by current vendor - try multiple matching strategies
-      let vendorProducts = response.data.filter(p => {
-        // Try matching by ID
-        if (p.supermarketId?._id === user._id) return true;
-        // Try matching by email as fallback
-        if (p.supermarketId?.email === user.email) return true;
-        // Try matching by name as fallback
-        if (p.supermarketId?.name === user.name) return true;
-        return false;
-      });
-      
-      console.log('Filtered vendor products:', vendorProducts);
-      
-      // If no products match, show all with a warning (for development/testing)
-      if (vendorProducts.length === 0 && response.data.length > 0) {
-        console.warn('No products matched current vendor, showing all products for development');
-        vendorProducts = response.data;
-        setError('Showing all products (vendor ID matching failed)');
-      }
-      
+      const vendorProducts = response.data || [];
       setProducts(vendorProducts);
-      // Sync to localStorage as fallback
-      localStorage.setItem('vendor_products', JSON.stringify(vendorProducts));
+      // Sync to user-scoped localStorage as fallback
+      localStorage.setItem(userStorageKey, JSON.stringify(vendorProducts));
     } catch (err) {
       console.error('API fetch failed, using localStorage fallback:', err);
-      // Fallback to localStorage
-      const storedProducts = localStorage.getItem('vendor_products');
+      // Fallback to user-scoped localStorage
+      const storedProducts = localStorage.getItem(userStorageKey);
       if (storedProducts) {
         try {
           const parsedProducts = JSON.parse(storedProducts);
@@ -107,12 +89,13 @@ const VendorProducts = () => {
     fetchProducts();
   }, [user]);
 
-  // Sync products to localStorage whenever they change
+  // Sync products to user-scoped localStorage whenever they change
   useEffect(() => {
-    if (products.length > 0) {
-      localStorage.setItem('vendor_products', JSON.stringify(products));
+    if (products.length > 0 && user) {
+      const userStorageKey = `vendor_products_${user?.id || user?._id || user?.vendorId || 'guest'}`;
+      localStorage.setItem(userStorageKey, JSON.stringify(products));
     }
-  }, [products]);
+  }, [products, user]);
 
   // Apply filters
   useEffect(() => {
@@ -192,37 +175,40 @@ const VendorProducts = () => {
     setMessage('');
     
     try {
-      const productData = {
-        name: formData.name,
-        price: Number(formData.price),
-        stock: Number(formData.stock),
-        category: formData.category,
-        description: formData.description
-      };
+      const vId = user?.vendorId || user?.supermarketId || user?._id || user?.id;
+      
+      // Create FormData for file upload
+      const formDataToSend = new FormData();
+      formDataToSend.append('name', formData.name);
+      formDataToSend.append('price', Number(formData.price));
+      formDataToSend.append('stock', Number(formData.stock));
+      formDataToSend.append('category', formData.category);
+      formDataToSend.append('description', formData.description);
+      formDataToSend.append('vendorId', vId);
+      formDataToSend.append('vendor', vId);
+      formDataToSend.append('supermarketId', vId);
 
-      // Handle image - convert file to base64 if needed
+      // Handle image - append file if it's a File object
       if (formData.image) {
-        if (typeof formData.image === 'string') {
-          // It's already a base64 string or URL
-          productData.image = formData.image;
-        } else if (formData.image instanceof File) {
-          // Convert file to base64 with compression
-          const compressedImage = await compressImage(formData.image);
-          productData.image = compressedImage;
+        if (formData.image instanceof File) {
+          formDataToSend.append('image', formData.image);
+        } else if (typeof formData.image === 'string') {
+          // If it's a URL string (from existing product), send it as regular field
+          formDataToSend.append('image', formData.image);
         }
       }
 
-      console.log('Submitting product data:', productData);
+      console.log('Submitting product data with FormData');
 
       if (editingProduct) {
-        const response = await updateProduct(editingProduct._id, productData);
+        const response = await updateProduct(editingProduct._id, formDataToSend);
         console.log('Update response:', response);
         const updatedProduct = response.product || response.data?.product;
         console.log('Updated product:', updatedProduct);
         setProducts(products.map(p => p._id === editingProduct._id ? updatedProduct : p));
         setMessage('Product updated successfully!');
       } else {
-        const response = await createProduct(productData);
+        const response = await createProduct(formDataToSend);
         console.log('Create response:', response);
         const newProduct = response.product || response.data?.product;
         console.log('New product:', newProduct);
@@ -449,6 +435,7 @@ const VendorProducts = () => {
             <thead>
               <tr>
                 <th>Product</th>
+                <th>DESCRIPTION</th>
                 <th>Category</th>
                 <th>Price</th>
                 <th>Stock Status</th>
@@ -466,8 +453,18 @@ const VendorProducts = () => {
                       ) : null}
                       <div>
                         <div className="product-name">{product.name}</div>
+                        {product.description && (
+                          <div className="product-description-sub text-xs text-gray-500 line-clamp-1" title={product.description}>
+                            {product.description}
+                          </div>
+                        )}
                         <div className="product-sku">SKU: {product._id.slice(-8).toUpperCase()}</div>
                       </div>
+                    </div>
+                  </td>
+                  <td className="description-cell text-xs text-gray-500">
+                    <div className="line-clamp-1 truncate max-w-xs" title={product.description || ''}>
+                      {product.description || '-'}
                     </div>
                   </td>
                   <td className="category-cell">{product.category || 'General'}</td>
@@ -512,121 +509,17 @@ const VendorProducts = () => {
       )}
 
       {/* Add/Edit Product Modal */}
-      {showModal && (
-        <div className="modal-overlay" onClick={handleCloseModal}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
-              <h2>{editingProduct ? 'Edit Product' : 'Add New Product'}</h2>
-              <button className="close-btn" onClick={handleCloseModal}>✕</button>
-            </div>
-            <form onSubmit={handleSubmit} className="product-form">
-              <div className="form-group">
-                <label>Product Name *</label>
-                <input
-                  type="text"
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  required
-                />
-              </div>
-              <div className="form-row">
-                <div className="form-group">
-                  <label>Category *</label>
-                  <select
-                    value={formData.category}
-                    onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                    required
-                  >
-                    <option value="">Select Category</option>
-                    {predefinedCategories.map(cat => (
-                      <option key={cat} value={cat}>{cat}</option>
-                    ))}
-                  </select>
-                </div>
-                <div className="form-group">
-                  <label>Price (ETB) *</label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    value={formData.price}
-                    onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-                    required
-                  />
-                </div>
-              </div>
-              <div className="form-row">
-                <div className="form-group">
-                  <label>Stock Quantity *</label>
-                  <input
-                    type="number"
-                    value={formData.stock}
-                    onChange={(e) => setFormData({ ...formData, stock: e.target.value })}
-                    required
-                  />
-                </div>
-                <div className="form-group">
-                  <label>Preparation Time</label>
-                  <select
-                    value={formData.preparationTime}
-                    onChange={(e) => setFormData({ ...formData, preparationTime: e.target.value })}
-                  >
-                    <option value="15">15 minutes</option>
-                    <option value="30">30 minutes</option>
-                    <option value="45">45 minutes</option>
-                    <option value="60">1 hour</option>
-                  </select>
-                </div>
-              </div>
-              <div className="form-group">
-                <label>Description</label>
-                <textarea
-                  value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  rows={3}
-                />
-              </div>
-              <div className="form-group">
-                <label>Product Image</label>
-                <div className="image-upload">
-                  {formData.image ? (
-                    <div className="image-preview">
-                      <img 
-                        src={typeof formData.image === 'string' ? formData.image : URL.createObjectURL(formData.image)} 
-                        alt="Preview" 
-                      />
-                      <button
-                        type="button"
-                        className="remove-image-btn"
-                        onClick={() => setFormData({ ...formData, image: null })}
-                      >
-                        ✕
-                      </button>
-                    </div>
-                  ) : (
-                    <label className="upload-label">
-                      <span>📤 Upload Image</span>
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={handleImageUpload}
-                        style={{ display: 'none' }}
-                      />
-                    </label>
-                  )}
-                </div>
-              </div>
-              <div className="form-actions">
-                <button type="button" className="btn-secondary" onClick={handleCloseModal} disabled={saving}>
-                  Cancel
-                </button>
-                <button type="submit" className="btn-primary" disabled={saving}>
-                  {saving ? 'Saving...' : (editingProduct ? 'Update Product' : 'Add Product')}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+      <ProductModal
+        showModal={showModal}
+        handleCloseModal={handleCloseModal}
+        handleSubmit={handleSubmit}
+        editingProduct={editingProduct}
+        formData={formData}
+        setFormData={setFormData}
+        saving={saving}
+        predefinedCategories={predefinedCategories}
+        handleImageUpload={handleImageUpload}
+      />
     </div>
   );
 };

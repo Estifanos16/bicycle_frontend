@@ -10,8 +10,21 @@ export const AuthProvider = ({ children }) => {
     useEffect(() => {
         if (token) {
             setToken(token); // set axios header
-            const payload = JSON.parse(atob(token.split('.')[1]));
-            setUser({ id: payload.id, roles: payload.roles, email: payload.email, name: payload.name });
+            try {
+                const payload = JSON.parse(atob(token.split('.')[1]));
+                setUser({ 
+                    id: payload.id, 
+                    _id: payload.id,
+                    roles: payload.roles, 
+                    email: payload.email, 
+                    name: payload.name,
+                    vendorId: payload.vendorId || payload.supermarketId,
+                    supermarketId: payload.supermarketId || payload.vendorId
+                });
+            } catch (err) {
+                console.error('Error decoding JWT token:', err);
+                setUser(null);
+            }
         }
     }, [token]);
 

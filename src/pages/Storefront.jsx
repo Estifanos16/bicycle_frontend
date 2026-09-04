@@ -23,9 +23,20 @@ const Storefront = () => {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const response = await getProducts();
-        // Filter products by vendor if API supports it, otherwise show all
-        setProducts(response.data || []);
+        const vendorId = vendorProfile?._id || vendorProfile?.id;
+        const response = vendorId 
+          ? await getProducts({ vendorId }) 
+          : await getProducts();
+        
+        // Filter by vendor ID if vendorProfile exists
+        const storeProducts = vendorId 
+          ? (response.data || []).filter(p => {
+              const pVendorId = p.vendorId?._id || p.vendorId || p.supermarketId?._id || p.supermarketId;
+              return pVendorId?.toString() === vendorId?.toString();
+            })
+          : (response.data || []);
+
+        setProducts(storeProducts);
       } catch (err) {
         console.error('Failed to fetch products:', err);
       } finally {
@@ -33,7 +44,7 @@ const Storefront = () => {
       }
     };
     fetchProducts();
-  }, []);
+  }, [vendorProfile]);
 
   if (!vendorProfile?.branding) {
     return (
@@ -218,15 +229,20 @@ const Storefront = () => {
                 <article className="product-card" key={product._id} style={{padding:'12px'}}>
                   <div className="product-media" style={{height:'160px'}}>
                     <img 
-                      src={product.image || `https://via.placeholder.com/400x400?text=${encodeURIComponent(product.name)}`} 
+                      src={(product.images && product.images[0]) || product.image || `https://via.placeholder.com/400x400?text=${encodeURIComponent(product.name)}`} 
                       alt={product.name} 
                       style={{width:'100%', height:'100%', objectFit:'cover'}} 
                     />
                   </div>
                   <div className="product-body" style={{padding:'12px 0 0 0'}}>
-                    <div className="product-title" style={{fontSize:'0.95rem', marginBottom:'8px', lineHeight:'1.3'}}>
+                    <div className="product-title" style={{fontSize:'0.95rem', marginBottom:'4px', lineHeight:'1.3'}}>
                       {product.name}
                     </div>
+                    {product.description && (
+                      <p className="product-description text-xs text-gray-500 line-clamp-2" style={{fontSize:'0.8rem', color:'#6B7280', margin:'0 0 8px 0', lineHeight:'1.3'}} title={product.description}>
+                        {product.description}
+                      </p>
+                    )}
                     <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'12px'}}>
                       <div className="rating">
                         <span style={{color:'#f5b450', fontSize:'0.9rem'}}>★</span>

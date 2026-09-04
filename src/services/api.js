@@ -8,9 +8,13 @@ const API = axios.create({
   }
 });
 
-// Add request interceptor for debugging
+// Add request interceptor for token & debugging
 API.interceptors.request.use(
   (config) => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      config.headers['Authorization'] = `Bearer ${token}`;
+    }
     console.log(`[API Request] ${config.method.toUpperCase()} ${config.url}`, config.data);
     return config;
   },
@@ -37,7 +41,13 @@ API.interceptors.response.use(
 
 // Set token for protected routes
 export const setToken = (token) => {
-  API.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+  if (token) {
+    localStorage.setItem('token', token);
+    API.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+  } else {
+    localStorage.removeItem('token');
+    delete API.defaults.headers.common['Authorization'];
+  }
 };
 
 // Auth
@@ -45,9 +55,35 @@ export const registerUser = (userData) => API.post('/auth/register', userData);
 export const loginUser = (userData) => API.post('/auth/login', userData);
 
 // Products
-export const getProducts = () => API.get('/products');
-export const createProduct = (productData) => API.post('/products', productData);
-export const updateProduct = (productId, productData) => API.put(`/products/${productId}`, productData);
+export const getProducts = (params) => API.get('/products', { params });
+export const getVendorProducts = (vendorId) => {
+  if (vendorId && vendorId !== 'mine') {
+    return API.get(`/products/vendor/${vendorId}`);
+  }
+  return API.get('/products/vendor/mine');
+};
+export const createProduct = (productData) => {
+  // If productData is FormData, don't set Content-Type (let Axios handle it with boundary)
+  if (productData instanceof FormData) {
+    return API.post('/products', productData, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    });
+  }
+  return API.post('/products', productData);
+};
+export const updateProduct = (productId, productData) => {
+  // If productData is FormData, don't set Content-Type (let Axios handle it with boundary)
+  if (productData instanceof FormData) {
+    return API.put(`/products/${productId}`, productData, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    });
+  }
+  return API.put(`/products/${productId}`, productData);
+};
 export const deleteProduct = (productId) => API.delete(`/products/${productId}`);
 
 // Orders
