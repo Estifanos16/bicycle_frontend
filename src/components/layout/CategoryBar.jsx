@@ -207,3 +207,4 @@ const CategoryBar = () => {
 };
 
 export default CategoryBar;
+

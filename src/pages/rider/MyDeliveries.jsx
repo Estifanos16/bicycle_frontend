@@ -1,6 +1,6 @@
 // src/pages/MyDeliveries.jsx
 import React, { useEffect, useState } from 'react';
-import { getMyDeliveries, updateOrderStatus } from '../services/api';
+import { getMyDeliveries, updateOrderStatus } from '../../services/api';
 
 const MyDeliveries = () => {
   const [orders, setOrders] = useState([]);

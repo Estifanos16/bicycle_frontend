@@ -68,6 +68,7 @@ export const getVendorProducts = (vendorId) => {
 export const createProduct = (productData) => API.post('/products', productData);
 export const updateProduct = (productId, productData) => API.put(`/products/${productId}`, productData);
 export const deleteProduct = (productId) => API.delete(`/products/${productId}`);
+export const getProductById = (productId) => API.get(`/products/${productId}`);
 
 // Orders
 export const createOrder = (orderData) => API.post('/orders', orderData);

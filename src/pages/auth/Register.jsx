@@ -1,16 +1,18 @@
 import React, { useState, useContext, useEffect } from 'react';
-import { loginUser } from '../services/api';
-import { AuthContext } from '../context/AuthContext';
+import { registerUser, loginUser } from '../../services/api';
 import { useNavigate } from 'react-router-dom';
-import bicycleImage from '../assets/Bicycle delivery image.jpg';
+import { AuthContext } from '../../context/AuthContext';
+import bicycleImage from '../../assets/Bicycle delivery image.jpg';
 
-const Login = () => {
-    const { login } = useContext(AuthContext);
+const Register = () => {
+    const [name, setName] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
-    const [error, setError] = useState('');
+    const [role, setRole] = useState('customer');
+    const [message, setMessage] = useState('');
     const navigate = useNavigate();
+    const { login } = useContext(AuthContext);
 
     useEffect(() => {
         document.body.classList.add('auth-page');
@@ -19,15 +21,30 @@ const Login = () => {
         };
     }, []);
 
+    const handleRoleChange = (role) => {
+        setRole(role);
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            const response = await loginUser({ email, password });
-            login(response.data.token);
-            setError('');
+            const response = await registerUser({ name, email, password, roles: [role] });
+            setMessage(response.data.message || 'Registered successfully');
+
+            // Immediately log user in after successful registration
+            try {
+                const loginRes = await loginUser({ email, password });
+                const token = loginRes.data.token;
+                if (token) {
+                    login(token);
+                }
+            } catch (loginErr) {
+                console.error('Auto-login failed:', loginErr);
+            }
+
             navigate('/');
         } catch (err) {
-            setError(err.response?.data?.message || 'Login failed');
+            setMessage(err.response?.data?.message || 'Registration failed');
         }
     };
 
@@ -55,10 +72,14 @@ const Login = () => {
             </div>
             <div className="auth-right">
                 <div className="auth-form-container">
-                    <h2>Welcome Back</h2>
-                    <p>Sign in to your account to continue</p>
-                    {error && <div className="alert alert-error">{error}</div>}
+                    <h2>Create Account</h2>
+                    <p>Join us and start your journey</p>
+                    {message && <div className={`alert ${message.includes('failed') ? 'alert-error' : 'alert-success'}`}>{message}</div>}
                     <form onSubmit={handleSubmit} className="auth-form">
+                        <div className="form-group">
+                            <label>Full Name</label>
+                            <input type="text" placeholder="Enter your full name" value={name} onChange={e => setName(e.target.value)} required />
+                        </div>
                         <div className="form-group">
                             <label>Email Address</label>
                             <input type="email" placeholder="Enter your email" value={email} onChange={e => setEmail(e.target.value)} required />
@@ -93,10 +114,27 @@ const Login = () => {
                                 </button>
                             </div>
                         </div>
-                        <button type="submit">Login</button>
+                        <div className="auth-roles">
+                            <label>Select your role:</label>
+                            <div className="role-tiles">
+                                <div className={`role-tile ${role === 'customer' ? 'active' : ''}`} onClick={() => handleRoleChange('customer')}>
+                                    <span className="role-icon">🛒</span>
+                                    <span>Customer</span>
+                                </div>
+                                <div className={`role-tile ${role === 'supermarket' ? 'active' : ''}`} onClick={() => handleRoleChange('supermarket')}>
+                                    <span className="role-icon">🏪</span>
+                                    <span>Supermarket Owner</span>
+                                </div>
+                                <div className={`role-tile ${role === 'rider' ? 'active' : ''}`} onClick={() => handleRoleChange('rider')}>
+                                    <span className="role-icon">🚴</span>
+                                    <span>Rider</span>
+                                </div>
+                            </div>
+                        </div>
+                        <button type="submit">Register</button>
                     </form>
                     <p className="auth-switch">
-                        Don't have an account? <a href="/register">Register</a>
+                        Already have an account? <a href="/login">Login</a>
                     </p>
                 </div>
             </div>
@@ -104,4 +142,5 @@ const Login = () => {
     );
 };
 
-export default Login;
+export default Register;
+

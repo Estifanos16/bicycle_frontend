@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { useVendor } from '../context/VendorContext';
-import { AuthContext } from '../context/AuthContext';
+import { useVendor } from '../../context/VendorContext';
+import { AuthContext } from '../../context/AuthContext';
 
 const VendorSettings = () => {
   const { user } = React.useContext(AuthContext);
@@ -1050,3 +1050,4 @@ const VendorSettings = () => {
 };
 
 export default VendorSettings;
+

@@ -1,8 +1,8 @@
 import React, { useState, useContext, useEffect } from 'react';
-import { loginUser, registerUser } from '../services/api';
-import { AuthContext } from '../context/AuthContext';
+import { loginUser, registerUser } from '../../services/api';
+import { AuthContext } from '../../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import bicycleImage from '../assets/Bicycle delivery image.jpg';
+import bicycleImage from '../../assets/Bicycle delivery image.jpg';
 
 const Auth = () => {
     const { login } = useContext(AuthContext);
@@ -218,3 +218,4 @@ const Auth = () => {
 };
 
 export default Auth;
+

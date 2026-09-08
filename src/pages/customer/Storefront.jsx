@@ -1,9 +1,11 @@
 import React, { useContext, useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { useVendor } from '../context/VendorContext';
-import { getProducts } from '../services/api';
-import { useCart } from '../context/CartContext';
+import { useVendor } from '../../context/VendorContext';
+import { getProducts } from '../../services/api';
+import { useCart } from '../../context/CartContext';
 import { useNavigate } from 'react-router-dom';
+
+import ProductCard from '../../components/product/ProductCard';
 
 const Storefront = () => {
   const { storeSlug } = useParams();
@@ -226,44 +228,24 @@ const Storefront = () => {
           ) : products.length > 0 ? (
             <div className="products-grid" style={{gap:'12px'}}>
               {products.map((product) => (
-                <article className="product-card" key={product._id} style={{padding:'12px'}}>
-                  <div className="product-media" style={{height:'160px'}}>
-                    <img 
-                      src={(product.images && product.images[0]) || product.image || `https://via.placeholder.com/400x400?text=${encodeURIComponent(product.name)}`} 
-                      alt={product.name} 
-                      style={{width:'100%', height:'100%', objectFit:'cover'}} 
-                    />
-                  </div>
-                  <div className="product-body" style={{padding:'12px 0 0 0'}}>
-                    <div className="product-title" style={{fontSize:'0.95rem', marginBottom:'4px', lineHeight:'1.3'}}>
-                      {product.name}
-                    </div>
-                    {product.description && (
-                      <p className="product-description text-xs text-gray-500 line-clamp-2" style={{fontSize:'0.8rem', color:'#6B7280', margin:'0 0 8px 0', lineHeight:'1.3'}} title={product.description}>
-                        {product.description}
-                      </p>
-                    )}
-                    <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'12px'}}>
-                      <div className="rating">
-                        <span style={{color:'#f5b450', fontSize:'0.9rem'}}>★</span>
-                        <span className="small muted" style={{marginLeft:'4px', fontSize:'0.8rem'}}>
-                          {(product.stock || 0) > 0 ? 'In stock' : 'Out of stock'}
-                        </span>
-                      </div>
-                      <div className="price" style={{fontSize:'1rem', fontWeight:'700'}}>
-                        ${product.price?.toFixed(2)}
-                      </div>
-                    </div>
-                    <button 
-                      className="add-btn" 
-                      onClick={() => { addToCart(product); navigate('/orders'); }}
-                      style={{padding:'8px 16px', fontSize:'0.85rem', width:'100%'}}
-                      disabled={!storeOpen || (product.stock || 0) === 0}
-                    >
-                      {!storeOpen ? 'Store Closed' : (product.stock || 0) === 0 ? 'Out of Stock' : 'Add to Cart'}
-                    </button>
-                  </div>
-                </article>
+                <ProductCard
+                  key={product._id}
+                  product={product}
+                  storeOpen={storeOpen}
+                  onAddToCart={(prod, selectedVariant) => {
+                    const itemToAdd = selectedVariant
+                      ? {
+                          ...prod,
+                          selectedVariant,
+                          name: `${prod.name} (${selectedVariant.name})`,
+                          price: selectedVariant.price !== undefined && selectedVariant.price !== null && selectedVariant.price !== '' ? Number(selectedVariant.price) : prod.price,
+                          stock: selectedVariant.stock !== undefined && selectedVariant.stock !== null && selectedVariant.stock !== '' ? Number(selectedVariant.stock) : prod.stock
+                        }
+                      : prod;
+                    addToCart(itemToAdd);
+                    navigate('/orders');
+                  }}
+                />
               ))}
             </div>
           ) : (
@@ -276,3 +258,5 @@ const Storefront = () => {
 };
 
 export default Storefront;
+
+

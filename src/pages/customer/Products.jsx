@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { getProducts, getVendorProducts, createProduct, updateProduct, deleteProduct } from '../services/api';
-import { AuthContext } from '../context/AuthContext';
+import { getProducts, getVendorProducts, createProduct, updateProduct, deleteProduct } from '../../services/api';
+import { AuthContext } from '../../context/AuthContext';
 import { Link } from 'react-router-dom';
-import { useCart } from '../context/CartContext';
+import { useCart } from '../../context/CartContext';
 import { useLocation, useNavigate } from 'react-router-dom';
 
 const Products = () => {
@@ -249,7 +249,7 @@ const Products = () => {
             </div>
             <p className="product-category">Category: {product.category || 'General'}</p>
             <p className="product-description text-xs text-gray-500 line-clamp-2">{product.description || 'No description available.'}</p>
-            <p className="product-price">${product.price.toFixed(2)}</p>
+            <p className="product-price">${product.price.toFixed(2)} <span style={{ fontSize: '0.8rem', color: '#666', fontWeight: 'normal' }}>/ {product.unit || 'piece'}</span></p>
             <p className="product-seller">Seller: {product.supermarketId?.name || 'Supermarket'}</p>
             {user?.roles?.includes('supermarket') && product.supermarketId?._id === user._id && (
               <div className="product-actions">
@@ -272,4 +272,5 @@ const Products = () => {
 };
 
 export default Products;
+
 

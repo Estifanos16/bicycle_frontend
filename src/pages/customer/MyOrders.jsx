@@ -1,6 +1,6 @@
 // src/pages/MyOrders.jsx
 import React, { useEffect, useState } from 'react';
-import { getMyOrders } from '../services/api';
+import { getMyOrders } from '../../services/api';
 
 const MyOrders = () => {
   const [orders, setOrders] = useState([]);

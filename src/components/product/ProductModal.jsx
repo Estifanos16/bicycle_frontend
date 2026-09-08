@@ -11,6 +11,25 @@ const ProductModal = ({
   predefinedCategories = [],
   handleImageUpload
 }) => {
+  const handleAddVariant = () => {
+    const newVariant = { name: '', sku: '', price: '', stock: '' };
+    setFormData({
+      ...formData,
+      variants: [...(formData.variants || []), newVariant]
+    });
+  };
+
+  const handleUpdateVariant = (index, field, value) => {
+    const updated = [...(formData.variants || [])];
+    updated[index] = { ...updated[index], [field]: value };
+    setFormData({ ...formData, variants: updated });
+  };
+
+  const handleRemoveVariant = (index) => {
+    const updated = (formData.variants || []).filter((_, i) => i !== index);
+    setFormData({ ...formData, variants: updated });
+  };
+
   if (!showModal) return null;
 
   return (
@@ -74,6 +93,23 @@ const ProductModal = ({
               />
             </div>
             <div className="form-group">
+              <label htmlFor="product-unit">Unit of Measure *</label>
+              <select
+                id="product-unit"
+                name="unit"
+                value={formData.unit || 'piece'}
+                onChange={(e) => setFormData({ ...formData, unit: e.target.value })}
+              >
+                <option value="piece">Piece (pc)</option>
+                <option value="kg">Kilogram (kg)</option>
+                <option value="g">Gram (g)</option>
+                <option value="liter">Liter (L)</option>
+                <option value="ml">Milliliter (ml)</option>
+                <option value="pack">Pack</option>
+                <option value="box">Box</option>
+              </select>
+            </div>
+            <div className="form-group">
               <label htmlFor="product-prepTime">Preparation Time</label>
               <select
                 id="product-prepTime"
@@ -100,6 +136,84 @@ const ProductModal = ({
               rows={3}
               placeholder="Enter detailed product description..."
             />
+          </div>
+
+          {/* Product Variants Section */}
+          <div className="form-group" style={{ borderTop: '1px solid #eee', paddingTop: '12px', marginTop: '12px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+              <label style={{ fontWeight: '600', fontSize: '0.95rem' }}>Product Variants (Optional)</label>
+              <button
+                type="button"
+                onClick={handleAddVariant}
+                style={{ background: '#e6f7ff', color: '#1890ff', border: '1px solid #91d5ff', borderRadius: '4px', padding: '4px 10px', fontSize: '0.85rem', cursor: 'pointer' }}
+              >
+                + Add Variant
+              </button>
+            </div>
+            
+            {(formData.variants || []).length === 0 ? (
+              <p style={{ fontSize: '0.8rem', color: '#888', fontStyle: 'italic', margin: '4px 0' }}>
+                No variants added. Add variants if this item has multiple options (e.g. Size: S/M/L, Color: Red/Blue).
+              </p>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                {(formData.variants || []).map((variant, idx) => (
+                  <div key={idx} style={{ background: '#f9f9f9', border: '1px solid #e8e8e8', borderRadius: '6px', padding: '10px', position: 'relative' }}>
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveVariant(idx)}
+                      style={{ position: 'absolute', top: '6px', right: '6px', background: 'transparent', border: 'none', color: '#ff4d4f', cursor: 'pointer', fontWeight: 'bold' }}
+                      title="Remove Variant"
+                    >
+                      ✕
+                    </button>
+                    <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr', gap: '8px' }}>
+                      <div>
+                        <span style={{ fontSize: '0.75rem', color: '#666' }}>Variant Name *</span>
+                        <input
+                          type="text"
+                          placeholder="e.g. Small / Red"
+                          value={variant.name || ''}
+                          onChange={(e) => handleUpdateVariant(idx, 'name', e.target.value)}
+                          style={{ width: '100%', padding: '6px', fontSize: '0.85rem', borderRadius: '4px', border: '1px solid #ccc' }}
+                        />
+                      </div>
+                      <div>
+                        <span style={{ fontSize: '0.75rem', color: '#666' }}>Price (ETB)</span>
+                        <input
+                          type="number"
+                          step="0.01"
+                          placeholder={`Base (${formData.price || 0})`}
+                          value={variant.price !== undefined ? variant.price : ''}
+                          onChange={(e) => handleUpdateVariant(idx, 'price', e.target.value)}
+                          style={{ width: '100%', padding: '6px', fontSize: '0.85rem', borderRadius: '4px', border: '1px solid #ccc' }}
+                        />
+                      </div>
+                      <div>
+                        <span style={{ fontSize: '0.75rem', color: '#666' }}>Stock</span>
+                        <input
+                          type="number"
+                          placeholder="Qty"
+                          value={variant.stock !== undefined ? variant.stock : ''}
+                          onChange={(e) => handleUpdateVariant(idx, 'stock', e.target.value)}
+                          style={{ width: '100%', padding: '6px', fontSize: '0.85rem', borderRadius: '4px', border: '1px solid #ccc' }}
+                        />
+                      </div>
+                      <div>
+                        <span style={{ fontSize: '0.75rem', color: '#666' }}>SKU</span>
+                        <input
+                          type="text"
+                          placeholder="SKU"
+                          value={variant.sku || ''}
+                          onChange={(e) => handleUpdateVariant(idx, 'sku', e.target.value)}
+                          style={{ width: '100%', padding: '6px', fontSize: '0.85rem', borderRadius: '4px', border: '1px solid #ccc' }}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           <div className="form-group">
@@ -159,3 +273,5 @@ const ProductModal = ({
 };
 
 export default ProductModal;
+
+

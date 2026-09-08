@@ -1,7 +1,7 @@
 // src/pages/RiderOrders.jsx
 import React, { useState, useEffect, useContext } from 'react';
-import { getPendingOrders, acceptOrder } from '../services/api';
-import { AuthContext } from '../context/AuthContext';
+import { getPendingOrders, acceptOrder } from '../../services/api';
+import { AuthContext } from '../../context/AuthContext';
 
 const RiderOrders = () => {
   const { user } = useContext(AuthContext);
