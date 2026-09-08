@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const baseURL = import.meta.env.VITE_API_URL || 'https://bicycle-backend16-2.onrender.com';
+const baseURL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 const API = axios.create({
   baseURL: `${baseURL}/api`,
   headers: {
@@ -14,6 +14,9 @@ API.interceptors.request.use(
     const token = localStorage.getItem('token');
     if (token) {
       config.headers['Authorization'] = `Bearer ${token}`;
+    }
+    if (config.data instanceof FormData) {
+      delete config.headers['Content-Type'];
     }
     console.log(`[API Request] ${config.method.toUpperCase()} ${config.url}`, config.data);
     return config;
@@ -62,28 +65,8 @@ export const getVendorProducts = (vendorId) => {
   }
   return API.get('/products/vendor/mine');
 };
-export const createProduct = (productData) => {
-  // If productData is FormData, don't set Content-Type (let Axios handle it with boundary)
-  if (productData instanceof FormData) {
-    return API.post('/products', productData, {
-      headers: {
-        'Content-Type': 'multipart/form-data'
-      }
-    });
-  }
-  return API.post('/products', productData);
-};
-export const updateProduct = (productId, productData) => {
-  // If productData is FormData, don't set Content-Type (let Axios handle it with boundary)
-  if (productData instanceof FormData) {
-    return API.put(`/products/${productId}`, productData, {
-      headers: {
-        'Content-Type': 'multipart/form-data'
-      }
-    });
-  }
-  return API.put(`/products/${productId}`, productData);
-};
+export const createProduct = (productData) => API.post('/products', productData);
+export const updateProduct = (productId, productData) => API.put(`/products/${productId}`, productData);
 export const deleteProduct = (productId) => API.delete(`/products/${productId}`);
 
 // Orders

@@ -106,29 +106,41 @@ const ProductModal = ({
             <label>Product Image</label>
             <div className="image-upload">
               {formData.image ? (
-                <div className="image-preview">
+                <div className="image-preview" style={{ position: 'relative', display: 'inline-block' }}>
                   <img
-                    src={typeof formData.image === 'string' ? formData.image : URL.createObjectURL(formData.image)}
+                    src={typeof formData.image === 'string' ? formData.image : (formData.image instanceof File ? URL.createObjectURL(formData.image) : '')}
                     alt="Preview"
+                    style={{ maxWidth: '120px', maxHeight: '120px', borderRadius: '8px', objectFit: 'cover' }}
                   />
                   <button
                     type="button"
                     className="remove-image-btn"
                     onClick={() => setFormData({ ...formData, image: null })}
+                    style={{ position: 'absolute', top: '-8px', right: '-8px', background: '#ff4d4f', color: '#fff', border: 'none', borderRadius: '50%', width: '24px', height: '24px', cursor: 'pointer' }}
                   >
                     ✕
                   </button>
                 </div>
               ) : (
-                <label className="upload-label">
-                  <span>📤 Upload Image</span>
+                <div className="image-input-options" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  <label className="upload-label" style={{ cursor: 'pointer', padding: '10px', border: '1px dashed #ccc', borderRadius: '6px', textAlign: 'center' }}>
+                    <span>📤 Upload Image File</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageUpload}
+                      style={{ display: 'none' }}
+                    />
+                  </label>
+                  <div style={{ textAlign: 'center', fontSize: '12px', color: '#888' }}>— OR —</div>
                   <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleImageUpload}
-                    style={{ display: 'none' }}
+                    type="url"
+                    placeholder="Paste Image URL (e.g. https://images.unsplash.com/...)"
+                    value={typeof formData.image === 'string' ? formData.image : ''}
+                    onChange={(e) => setFormData({ ...formData, image: e.target.value })}
+                    style={{ padding: '8px', borderRadius: '6px', border: '1px solid #ccc' }}
                   />
-                </label>
+                </div>
               )}
             </div>
           </div>

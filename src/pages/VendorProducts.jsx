@@ -136,7 +136,7 @@ const VendorProducts = () => {
         stock: product.stock,
         preparationTime: product.preparationTime || '15',
         description: product.description || '',
-        image: (product.images && product.images[0]) || product.image || null
+        image: (product.images && typeof product.images[0] === 'string' && !product.images[0].includes('{}') ? product.images[0] : (typeof product.image === 'string' && !product.image.includes('{}') ? product.image : null))
       });
     } else {
       setEditingProduct(null);
@@ -152,6 +152,7 @@ const VendorProducts = () => {
     }
     setShowModal(true);
     setMessage('');
+    setError('');
   };
 
   const handleCloseModal = () => {
@@ -171,11 +172,11 @@ const VendorProducts = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSaving(true);
-    setError('');
     setMessage('');
+    setError('');
     
     try {
-      const vId = user?.vendorId || user?.supermarketId || user?._id || user?.id;
+      const vId = user?.vendorId || user?.supermarketId || user?.id || user?._id;
       
       // Create FormData for file upload
       const formDataToSend = new FormData();
@@ -188,12 +189,16 @@ const VendorProducts = () => {
       formDataToSend.append('vendor', vId);
       formDataToSend.append('supermarketId', vId);
 
-      // Handle image - append file if it's a File object
+      // Handle image - append file (as base64 or File) or valid URL string
       if (formData.image) {
         if (formData.image instanceof File) {
-          formDataToSend.append('image', formData.image);
-        } else if (typeof formData.image === 'string') {
-          // If it's a URL string (from existing product), send it as regular field
+          const base64Str = await new Promise((resolve) => {
+            const reader = new FileReader();
+            reader.onloadend = () => resolve(reader.result);
+            reader.readAsDataURL(formData.image);
+          });
+          formDataToSend.append('image', base64Str);
+        } else if (typeof formData.image === 'string' && formData.image.trim() !== '' && !formData.image.includes('{}')) {
           formDataToSend.append('image', formData.image);
         }
       }

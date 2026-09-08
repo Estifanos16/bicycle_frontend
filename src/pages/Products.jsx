@@ -219,6 +219,12 @@ const Products = () => {
               onChange={(e) => setNewProduct({ ...newProduct, stock: Number(e.target.value) })}
               required
             />
+            <input
+              type="text"
+              placeholder="Image URL (e.g. https://...)"
+              value={newProduct.image || ''}
+              onChange={(e) => setNewProduct({ ...newProduct, image: e.target.value })}
+            />
             <button type="submit">{editingProduct ? 'Update Product' : 'Save Product'}</button>
           </form>
         </div>
