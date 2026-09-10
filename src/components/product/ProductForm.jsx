@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 
 const PREDEFINED_CATEGORIES = [
   'General', 'Clothing', 'Electronics', 'Food', 'Beverages',
@@ -28,6 +28,32 @@ const ProductForm = ({
   error = '',
   message = '',
 }) => {
+  const [dragActive, setDragActive] = useState(false);
+  const [imagePreviews, setImagePreviews] = useState([]);
+  const objectUrlsRef = useRef([]);
+
+  // ── Cleanup object URLs on unmount ─────────────────────────────────────────────
+  useEffect(() => {
+    return () => {
+      objectUrlsRef.current.forEach(url => URL.revokeObjectURL(url));
+    };
+  }, []);
+
+  // ── Initialize previews when formData changes (for edit mode) ─────────────────
+  useEffect(() => {
+    console.log('[ProductForm] formData changed, images:', formData.images, 'image:', formData.image);
+    // Only update from formData if it contains strings (URLs), not File objects
+    // File objects are handled by handleImageUpload which creates blob URLs
+    if (formData.images && Array.isArray(formData.images) && formData.images.length > 0) {
+      const hasOnlyStrings = formData.images.every(img => typeof img === 'string');
+      if (hasOnlyStrings) {
+        setImagePreviews(formData.images);
+      }
+    } else if (formData.image && typeof formData.image === 'string') {
+      setImagePreviews([formData.image]);
+    }
+  }, [formData.images, formData.image]);
+
   // ── Variant helpers ─────────────────────────────────────────────────────────
   const handleAddVariant = () => {
     setFormData({
@@ -49,10 +75,138 @@ const ProductForm = ({
     });
   };
 
-  // ── Image helper ─────────────────────────────────────────────────────────────
+  // ── Image helpers ─────────────────────────────────────────────────────────────
   const handleImageUpload = (e) => {
-    const file = e.target.files[0];
-    if (file) setFormData({ ...formData, image: file });
+    const files = Array.from(e.target.files);
+    if (files.length === 0) return;
+
+    const newPreviews = [];
+    const newObjectUrls = [];
+
+    files.forEach(file => {
+      if (file.type.startsWith('image/')) {
+        const objectUrl = URL.createObjectURL(file);
+        newObjectUrls.push(objectUrl);
+        newPreviews.push(objectUrl);
+        objectUrlsRef.current.push(objectUrl);
+      }
+    });
+
+    if (newPreviews.length > 0) {
+      console.log('[ProductForm] Adding previews:', newPreviews);
+      setImagePreviews(prev => [...prev, ...newPreviews]);
+      setFormData({
+        ...formData,
+        image: files[0], // Keep first file as main image for backward compatibility
+        images: [...(formData.images || []), ...files]
+      });
+    }
+  };
+
+  const handleDrag = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.type === 'dragenter' || e.type === 'dragover') {
+      setDragActive(true);
+    } else if (e.type === 'dragleave') {
+      setDragActive(false);
+    }
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
+
+    const files = Array.from(e.dataTransfer.files);
+    if (files.length === 0) return;
+
+    const newPreviews = [];
+    const newObjectUrls = [];
+
+    files.forEach(file => {
+      if (file.type.startsWith('image/')) {
+        const objectUrl = URL.createObjectURL(file);
+        newObjectUrls.push(objectUrl);
+        newPreviews.push(objectUrl);
+        objectUrlsRef.current.push(objectUrl);
+      }
+    });
+
+    if (newPreviews.length > 0) {
+      setImagePreviews(prev => [...prev, ...newPreviews]);
+      setFormData({
+        ...formData,
+        image: files[0],
+        images: [...(formData.images || []), ...files]
+      });
+    }
+  };
+
+  const handleRemoveImage = (index) => {
+    const removedPreview = imagePreviews[index];
+    
+    // Revoke object URL if it's a blob URL
+    if (removedPreview && removedPreview.startsWith('blob:')) {
+      URL.revokeObjectURL(removedPreview);
+      objectUrlsRef.current = objectUrlsRef.current.filter(url => url !== removedPreview);
+    }
+
+    const newPreviews = imagePreviews.filter((_, i) => i !== index);
+    
+    // For formData.images, we need to match by type
+    const newImages = (formData.images || []).filter((img, i) => {
+      // If the preview was a blob URL, find the corresponding File object
+      if (removedPreview && removedPreview.startsWith('blob:')) {
+        // Keep all string URLs, and keep File objects that aren't at this index
+        // We need to track which File object corresponds to which blob URL
+        // For simplicity, we'll rebuild the images array based on remaining previews
+        return false; // We'll rebuild below
+      }
+      // If it's a string URL, filter by index
+      return i !== index;
+    });
+
+    // Rebuild images array based on remaining previews
+    const rebuiltImages = [];
+    newPreviews.forEach(preview => {
+      if (preview.startsWith('blob:')) {
+        // Find the corresponding File object in formData.images
+        const fileIndex = imagePreviews.findIndex(p => p === preview);
+        if (fileIndex !== -1 && formData.images && formData.images[fileIndex]) {
+          rebuiltImages.push(formData.images[fileIndex]);
+        }
+      } else {
+        // It's a string URL
+        rebuiltImages.push(preview);
+      }
+    });
+
+    setImagePreviews(newPreviews);
+    setFormData({
+      ...formData,
+      images: rebuiltImages,
+      image: rebuiltImages[0] || null
+    });
+  };
+
+  const handleImageUrlChange = (e) => {
+    const url = e.target.value.trim();
+    if (url) {
+      setImagePreviews(prev => [...prev, url]);
+      setFormData({
+        ...formData,
+        images: [...(formData.images || []), url],
+        image: url
+      });
+    }
+  };
+
+  const getDisplayImage = () => {
+    if (imagePreviews.length > 0) {
+      return imagePreviews[0];
+    }
+    return null;
   };
 
   // ── Render ───────────────────────────────────────────────────────────────────
@@ -489,97 +643,148 @@ const ProductForm = ({
         <div className="product-form-right space-y-6">
           {/* Image Upload */}
           <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: '12px', padding: '24px' }}>
-            <h3 style={{ margin: '0 0 16px 0', fontSize: '1rem', fontWeight: '600', color: '#111827' }}>Product Image</h3>
+            <h3 style={{ margin: '0 0 16px 0', fontSize: '1rem', fontWeight: '600', color: '#111827' }}>Product Images</h3>
             
-            <div className="image-upload">
-              {formData.image ? (
-                <div className="image-preview" style={{ position: 'relative', display: 'inline-block', width: '100%' }}>
-                  <img
-                    src={
-                      typeof formData.image === 'string'
-                        ? formData.image
-                        : formData.image instanceof File
-                        ? URL.createObjectURL(formData.image)
-                        : ''
-                    }
-                    alt="Preview"
-                    style={{ width: '100%', maxHeight: '300px', borderRadius: '8px', objectFit: 'cover', display: 'block' }}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setFormData({ ...formData, image: null })}
-                    style={{
-                      position: 'absolute',
-                      top: '-8px',
-                      right: '-8px',
-                      background: '#FF5500',
-                      color: '#fff',
-                      border: 'none',
-                      borderRadius: '50%',
-                      width: '28px',
-                      height: '28px',
-                      cursor: 'pointer',
-                      fontWeight: 'bold',
-                      lineHeight: '28px',
-                      textAlign: 'center',
-                      fontSize: '1rem',
-                    }}
-                  >
-                    ✕
-                  </button>
-                </div>
-              ) : (
-                <div className="image-input-options" style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                  <label
-                    style={{
-                      cursor: 'pointer',
-                      padding: '24px',
-                      border: '2px dashed #FF5500',
-                      borderRadius: '8px',
-                      textAlign: 'center',
-                      color: '#6b7280',
-                      transition: 'all 0.2s',
-                      background: '#fff',
-                    }}
-                    onMouseEnter={(e) => {
-                      e.target.style.background = '#fff5f0';
-                      e.target.style.borderColor = '#e64d00';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.target.style.background = '#fff';
-                      e.target.style.borderColor = '#FF5500';
-                    }}
-                  >
-                    <span style={{ fontSize: '2rem', display: 'block', marginBottom: '8px' }}>📤</span>
-                    <span style={{ fontWeight: '500', color: '#FF5500' }}>Upload Image File</span>
-                    <span style={{ display: 'block', fontSize: '0.75rem', marginTop: '4px', color: '#9ca3af' }}>PNG, JPG, WEBP up to 5MB</span>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={handleImageUpload}
-                      style={{ display: 'none' }}
+            {/* Image Previews Grid */}
+            {imagePreviews.length > 0 && (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(80px, 1fr))', gap: '8px', marginBottom: '16px' }}>
+                {imagePreviews.map((preview, index) => (
+                  <div key={index} style={{ position: 'relative', aspectRatio: '1', borderRadius: '8px', overflow: 'hidden', border: '1px solid #e5e7eb' }}>
+                    <img
+                      src={preview}
+                      alt={`Preview ${index + 1}`}
+                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                     />
-                  </label>
-                  <div style={{ textAlign: 'center', fontSize: '12px', color: '#9ca3af' }}>— OR —</div>
-                  <input
-                    type="url"
-                    placeholder="Paste image URL..."
-                    value={typeof formData.image === 'string' ? formData.image : ''}
-                    onChange={(e) => setFormData({ ...formData, image: e.target.value })}
-                    style={{
-                      padding: '10px 12px',
-                      borderRadius: '8px',
-                      border: '1px solid #e5e7eb',
-                      fontSize: '0.9rem',
-                      background: '#fff',
-                      outline: 'none',
-                      transition: 'all 0.2s',
-                    }}
-                    onFocus={(e) => e.target.style.borderColor = '#FF5500'}
-                    onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
-                  />
-                </div>
-              )}
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveImage(index)}
+                      style={{
+                        position: 'absolute',
+                        top: '4px',
+                        right: '4px',
+                        background: 'rgba(255, 85, 0, 0.9)',
+                        color: '#fff',
+                        border: 'none',
+                        borderRadius: '50%',
+                        width: '20px',
+                        height: '20px',
+                        cursor: 'pointer',
+                        fontSize: '12px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }}
+                    >
+                      ✕
+                    </button>
+                    {index === 0 && (
+                      <div style={{
+                        position: 'absolute',
+                        bottom: '4px',
+                        left: '4px',
+                        background: 'rgba(0, 0, 0, 0.7)',
+                        color: '#fff',
+                        fontSize: '10px',
+                        padding: '2px 6px',
+                        borderRadius: '4px',
+                      }}>
+                        Main
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Drag & Drop Zone */}
+            <div
+              onDragEnter={handleDrag}
+              onDragLeave={handleDrag}
+              onDragOver={handleDrag}
+              onDrop={handleDrop}
+              style={{
+                border: `2px dashed ${dragActive ? '#FF5500' : '#e5e7eb'}`,
+                borderRadius: '8px',
+                padding: '24px',
+                textAlign: 'center',
+                background: dragActive ? '#fff5f0' : '#f9fafb',
+                cursor: 'pointer',
+                transition: 'all 0.2s',
+              }}
+            >
+              <label
+                style={{
+                  cursor: 'pointer',
+                  display: 'block',
+                  width: '100%',
+                  height: '100%',
+                }}
+              >
+                <span style={{ fontSize: '2rem', display: 'block', marginBottom: '8px' }}>📤</span>
+                <span style={{ fontWeight: '500', color: dragActive ? '#FF5500' : '#374151' }}>
+                  {dragActive ? 'Drop images here' : 'Drag & drop images or click to upload'}
+                </span>
+                <span style={{ display: 'block', fontSize: '0.75rem', marginTop: '4px', color: '#9ca3af' }}>
+                  PNG, JPG, WEBP up to 5MB each
+                </span>
+                <input
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  onChange={handleImageUpload}
+                  style={{ display: 'none' }}
+                />
+              </label>
+            </div>
+
+            {/* URL Input */}
+            <div style={{ marginTop: '12px', display: 'flex', gap: '8px' }}>
+              <input
+                type="url"
+                placeholder="Or paste image URL..."
+                style={{
+                  flex: 1,
+                  padding: '10px 12px',
+                  borderRadius: '8px',
+                  border: '1px solid #e5e7eb',
+                  fontSize: '0.9rem',
+                  background: '#fff',
+                  outline: 'none',
+                  transition: 'all 0.2s',
+                }}
+                onFocus={(e) => e.target.style.borderColor = '#FF5500'}
+                onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    handleImageUrlChange(e);
+                    e.target.value = '';
+                  }
+                }}
+              />
+              <button
+                type="button"
+                onClick={(e) => {
+                  const input = e.target.previousElementSibling;
+                  handleImageUrlChange({ target: { value: input.value } });
+                  input.value = '';
+                }}
+                style={{
+                  padding: '10px 16px',
+                  background: '#FF5500',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '8px',
+                  fontSize: '0.9rem',
+                  fontWeight: '500',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s',
+                }}
+                onMouseEnter={(e) => e.target.style.background = '#e64d00'}
+                onMouseLeave={(e) => e.target.style.background = '#FF5500'}
+              >
+                Add
+              </button>
             </div>
           </div>
 
@@ -597,21 +802,21 @@ const ProductForm = ({
             >
               {/* Product Image */}
               <div style={{ width: '100%', height: '200px', background: '#f9fafb', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                {formData.image ? (
-                  <img
-                    src={
-                      typeof formData.image === 'string'
-                        ? formData.image
-                        : formData.image instanceof File
-                        ? URL.createObjectURL(formData.image)
-                        : ''
-                    }
-                    alt="Product Preview"
-                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                  />
-                ) : (
-                  <span style={{ fontSize: '3rem', color: '#d1d5db' }}>📦</span>
-                )}
+                {(() => {
+                  console.log('[ProductForm] Rendering preview, imagePreviews:', imagePreviews);
+                  if (imagePreviews.length > 0) {
+                    return (
+                      <img
+                        src={imagePreviews[0]}
+                        alt="Product Preview"
+                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                        onLoad={() => console.log('[ProductForm] Image loaded:', imagePreviews[0])}
+                        onError={() => console.log('[ProductForm] Image failed to load:', imagePreviews[0])}
+                      />
+                    );
+                  }
+                  return <span style={{ fontSize: '3rem', color: '#d1d5db' }}>📦</span>;
+                })()}
               </div>
               
               {/* Product Info */}

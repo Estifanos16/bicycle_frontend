@@ -14,6 +14,7 @@ const EMPTY_FORM = {
   preparationTime: '15',
   description: '',
   image: null,
+  images: [],
 };
 
 const AddProduct = () => {
@@ -45,14 +46,38 @@ const AddProduct = () => {
       formDataToSend.append('vendor', vId);
       formDataToSend.append('supermarketId', vId);
 
+      // Handle multiple images - send URLs as JSON, files as FormData
+      const images = formData.images || [];
+      const urlImages = [];
+      const fileImages = [];
+
+      for (const img of images) {
+        if (img instanceof File) {
+          fileImages.push(img);
+        } else if (
+          typeof img === 'string' &&
+          img.trim() !== '' &&
+          !img.includes('{}') &&
+          !img.includes('[object Object]')
+        ) {
+          urlImages.push(img);
+        }
+      }
+
+      // Append URL images as JSON array
+      if (urlImages.length > 0) {
+        formDataToSend.append('images', JSON.stringify(urlImages));
+      }
+
+      // Append file images directly for multer to handle
+      fileImages.forEach((file) => {
+        formDataToSend.append('images', file);
+      });
+
+      // Also append single image for backward compatibility
       if (formData.image) {
         if (formData.image instanceof File) {
-          const base64Str = await new Promise((resolve) => {
-            const reader = new FileReader();
-            reader.onloadend = () => resolve(reader.result);
-            reader.readAsDataURL(formData.image);
-          });
-          formDataToSend.append('image', base64Str);
+          formDataToSend.append('image', formData.image);
         } else if (
           typeof formData.image === 'string' &&
           formData.image.trim() !== '' &&

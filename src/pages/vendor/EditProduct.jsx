@@ -20,6 +20,7 @@ const EditProduct = () => {
     preparationTime: '15',
     description: '',
     image: null,
+    images: [],
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -35,12 +36,15 @@ const EditProduct = () => {
         const response = await getProductById(id);
         const product = response.data;
 
-        const existingImage =
-          product.images && typeof product.images[0] === 'string' && !product.images[0].includes('{}')
-            ? product.images[0]
-            : typeof product.image === 'string' && !product.image.includes('{}')
-            ? product.image
-            : null;
+        const existingImages = product.images && Array.isArray(product.images)
+          ? product.images.filter(img => img && typeof img === 'string' && !img.includes('{}') && !img.includes('[object Object]'))
+          : [];
+
+        const existingImage = existingImages.length > 0
+          ? existingImages[0]
+          : typeof product.image === 'string' && !product.image.includes('{}')
+          ? product.image
+          : null;
 
         setFormData({
           name: product.name || '',
@@ -52,6 +56,7 @@ const EditProduct = () => {
           preparationTime: product.preparationTime || '15',
           description: product.description || '',
           image: existingImage,
+          images: existingImages,
         });
       } catch (err) {
         setError('Failed to load product. It may not exist or you may not have access.');
@@ -84,14 +89,38 @@ const EditProduct = () => {
       formDataToSend.append('vendor', vId);
       formDataToSend.append('supermarketId', vId);
 
+      // Handle multiple images - send URLs as JSON, files as FormData
+      const images = formData.images || [];
+      const urlImages = [];
+      const fileImages = [];
+
+      for (const img of images) {
+        if (img instanceof File) {
+          fileImages.push(img);
+        } else if (
+          typeof img === 'string' &&
+          img.trim() !== '' &&
+          !img.includes('{}') &&
+          !img.includes('[object Object]')
+        ) {
+          urlImages.push(img);
+        }
+      }
+
+      // Append URL images as JSON array
+      if (urlImages.length > 0) {
+        formDataToSend.append('images', JSON.stringify(urlImages));
+      }
+
+      // Append file images directly for multer to handle
+      fileImages.forEach((file) => {
+        formDataToSend.append('images', file);
+      });
+
+      // Also append single image for backward compatibility
       if (formData.image) {
         if (formData.image instanceof File) {
-          const base64Str = await new Promise((resolve) => {
-            const reader = new FileReader();
-            reader.onloadend = () => resolve(reader.result);
-            reader.readAsDataURL(formData.image);
-          });
-          formDataToSend.append('image', base64Str);
+          formDataToSend.append('image', formData.image);
         } else if (
           typeof formData.image === 'string' &&
           formData.image.trim() !== '' &&
