@@ -64,8 +64,7 @@ const EditProduct = () => {
   }, [id]);
 
   // ── Submit ────────────────────────────────────────────────────────────────
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleSubmit = async () => {
     setSaving(true);
     setError('');
     setMessage('');
@@ -117,7 +116,7 @@ const EditProduct = () => {
   // ── Loading state ─────────────────────────────────────────────────────────
   if (loading) {
     return (
-      <div className="container" style={{ padding: '28px 20px', textAlign: 'center' }}>
+      <div style={{ padding: '28px 20px', textAlign: 'center' }}>
         <div className="spinner" style={{ margin: '60px auto' }} />
         <p>Loading product...</p>
       </div>
@@ -125,18 +124,16 @@ const EditProduct = () => {
   }
 
   return (
-    <div className="container" style={{ padding: '28px 20px' }}>
-      <ProductForm
-        formData={formData}
-        setFormData={setFormData}
-        onSubmit={handleSubmit}
-        onCancel={() => navigate('/products')}
-        saving={saving}
-        isEdit={true}
-        error={error}
-        message={message}
-      />
-    </div>
+    <ProductForm
+      formData={formData}
+      setFormData={setFormData}
+      onSubmit={handleSubmit}
+      onCancel={() => navigate('/products')}
+      saving={saving}
+      isEdit={true}
+      error={error}
+      message={message}
+    />
   );
 };
 

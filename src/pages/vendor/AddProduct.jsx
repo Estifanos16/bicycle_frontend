@@ -25,8 +25,7 @@ const AddProduct = () => {
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleSubmit = async () => {
     setSaving(true);
     setError('');
     setMessage('');
@@ -77,18 +76,16 @@ const AddProduct = () => {
   };
 
   return (
-    <div className="container" style={{ padding: '28px 20px' }}>
-      <ProductForm
-        formData={formData}
-        setFormData={setFormData}
-        onSubmit={handleSubmit}
-        onCancel={() => navigate('/products')}
-        saving={saving}
-        isEdit={false}
-        error={error}
-        message={message}
-      />
-    </div>
+    <ProductForm
+      formData={formData}
+      setFormData={setFormData}
+      onSubmit={handleSubmit}
+      onCancel={() => navigate('/products')}
+      saving={saving}
+      isEdit={false}
+      error={error}
+      message={message}
+    />
   );
 };
 
