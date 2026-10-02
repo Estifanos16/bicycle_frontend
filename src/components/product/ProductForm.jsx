@@ -23,14 +23,15 @@ const ProductForm = ({
   setFormData,
   onSubmit,
   onCancel,
-  saving = false,
+  saving,
   isEdit = false,
-  error = '',
-  message = '',
+  error,
+  message,
 }) => {
   const [dragActive, setDragActive] = useState(false);
   const [imagePreviews, setImagePreviews] = useState([]);
   const objectUrlsRef = useRef([]);
+  const urlInputRef = useRef(null);
 
   // ── Cleanup object URLs on unmount ─────────────────────────────────────────────
   useEffect(() => {
@@ -199,6 +200,18 @@ const ProductForm = ({
         images: [...(formData.images || []), url],
         image: url
       });
+    }
+  };
+
+  const handlePasteFromClipboard = async (inputRef) => {
+    try {
+      const text = await navigator.clipboard.readText();
+      if (inputRef.current) {
+        inputRef.current.value = text;
+        inputRef.current.focus();
+      }
+    } catch (err) {
+      console.error('Failed to read clipboard:', err);
     }
   };
 
@@ -740,6 +753,7 @@ const ProductForm = ({
             {/* URL Input */}
             <div style={{ marginTop: '12px', display: 'flex', gap: '8px' }}>
               <input
+                ref={urlInputRef}
                 type="url"
                 placeholder="Or paste image URL..."
                 style={{
@@ -764,8 +778,28 @@ const ProductForm = ({
               />
               <button
                 type="button"
+                onClick={() => handlePasteFromClipboard(urlInputRef)}
+                title="Paste from clipboard"
+                style={{
+                  padding: '10px 12px',
+                  background: '#F3F4F6',
+                  color: '#374151',
+                  border: '1px solid #e5e7eb',
+                  borderRadius: '8px',
+                  fontSize: '0.9rem',
+                  fontWeight: '500',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s',
+                }}
+                onMouseEnter={(e) => e.target.style.background = '#E5E7EB'}
+                onMouseLeave={(e) => e.target.style.background = '#F3F4F6'}
+              >
+                📋
+              </button>
+              <button
+                type="button"
                 onClick={(e) => {
-                  const input = e.target.previousElementSibling;
+                  const input = e.target.previousElementSibling.previousElementSibling;
                   handleImageUrlChange({ target: { value: input.value } });
                   input.value = '';
                 }}

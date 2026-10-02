@@ -6,16 +6,39 @@ import { useCart } from '../../context/CartContext';
 import { useNavigate } from 'react-router-dom';
 
 import ProductCard from '../../components/product/ProductCard';
+import VariantModal from '../../components/product/VariantModal';
 
 const Storefront = () => {
   const { storeSlug } = useParams();
   const { vendorProfile, isStoreOpen, fetchVendorProfileBySlug } = useVendor();
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('All');
+  const [variantModalProduct, setVariantModalProduct] = useState(null);
   const { addToCart } = useCart();
   const navigate = useNavigate();
 
   const storeOpen = isStoreOpen();
+
+  const predefinedCategories = [
+    'General', 'Clothing', 'Electronics', 'Food', 'Beverages',
+    'Household', 'Sports', 'Toys', 'Books', 'Health & Beauty',
+    'Automotive', 'Gardening', 'Furniture', 'Appliances', 'Pet Supplies'
+  ];
+
+  const handleOpenVariantModal = (product) => {
+    setVariantModalProduct(product);
+  };
+
+  const handleCloseVariantModal = () => {
+    setVariantModalProduct(null);
+  };
+
+  const handleAddToCartFromModal = (item) => {
+    addToCart(item);
+    navigate('/orders');
+  };
 
   useEffect(() => {
     // Fetch vendor profile by slug
@@ -223,36 +246,115 @@ const Storefront = () => {
         {/* Products Section */}
         <div>
           <h2 style={{margin:'0 0 16px 0', fontSize:'1.2rem'}}>Products</h2>
+
+          {/* Search Input */}
+          <div style={{marginBottom:'16px'}}>
+            <input
+              type="search"
+              placeholder="Search products by name..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              style={{
+                width:'100%',
+                padding:'12px 16px',
+                border:'1px solid #E5E7EB',
+                borderRadius:'8px',
+                fontSize:'0.95rem',
+                outline:'none',
+                transition:'all 0.2s'
+              }}
+              onFocus={(e) => e.target.style.borderColor = '#FF5500'}
+              onBlur={(e) => e.target.style.borderColor = '#E5E7EB'}
+            />
+          </div>
+
+          {/* Category Pills */}
+          <div style={{marginBottom:'20px', display:'flex', flexWrap:'wrap', gap:'8px'}}>
+            {['All', ...Array.from(new Set([...predefinedCategories, ...products.map((product) => product.category || 'General')]))].sort().map((category) => (
+              <button
+                key={category}
+                type="button"
+                onClick={() => setSelectedCategory(category)}
+                style={{
+                  padding:'8px 16px',
+                  borderRadius:'20px',
+                  border: selectedCategory === category ? '1.5px solid #FF5500' : '1px solid #E5E7EB',
+                  background: selectedCategory === category ? '#FFF5F0' : '#F9FAFB',
+                  color: selectedCategory === category ? '#FF5500' : '#374151',
+                  fontWeight: selectedCategory === category ? '600' : 'normal',
+                  cursor: 'pointer',
+                  fontSize:'0.85rem',
+                  transition:'all 0.2s'
+                }}
+                onMouseEnter={(e) => {
+                  if (selectedCategory !== category) {
+                    e.target.style.borderColor = '#FF5500';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (selectedCategory !== category) {
+                    e.target.style.borderColor = '#E5E7EB';
+                  }
+                }}
+              >
+                {category}
+              </button>
+            ))}
+          </div>
+
           {loading ? (
             <p className="muted">Loading products...</p>
-          ) : products.length > 0 ? (
-            <div className="products-grid" style={{gap:'12px'}}>
-              {products.map((product) => (
-                <ProductCard
-                  key={product._id}
-                  product={product}
-                  storeOpen={storeOpen}
-                  onAddToCart={(prod, selectedVariant) => {
-                    const itemToAdd = selectedVariant
-                      ? {
-                          ...prod,
-                          selectedVariant,
-                          name: `${prod.name} (${selectedVariant.name})`,
-                          price: selectedVariant.price !== undefined && selectedVariant.price !== null && selectedVariant.price !== '' ? Number(selectedVariant.price) : prod.price,
-                          stock: selectedVariant.stock !== undefined && selectedVariant.stock !== null && selectedVariant.stock !== '' ? Number(selectedVariant.stock) : prod.stock
-                        }
-                      : prod;
-                    addToCart(itemToAdd);
-                    navigate('/orders');
-                  }}
-                />
-              ))}
-            </div>
-          ) : (
-            <p className="muted">No products available yet.</p>
-          )}
+          ) : (() => {
+            const filteredProducts = products.filter((product) => {
+              const term = searchTerm.trim().toLowerCase();
+              const category = product.category || 'General';
+              const matchesSearch =
+                product.name.toLowerCase().includes(term) ||
+                (product.description || '').toLowerCase().includes(term) ||
+                category.toLowerCase().includes(term);
+              const matchesCategory = selectedCategory === 'All' || category === selectedCategory;
+              return matchesSearch && matchesCategory;
+            });
+
+            return filteredProducts.length > 0 ? (
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                {filteredProducts.map((product) => (
+                  <ProductCard
+                    key={product._id}
+                    product={product}
+                    storeOpen={storeOpen}
+                    onOpenVariantModal={handleOpenVariantModal}
+                    onAddToCart={(prod, selectedVariant) => {
+                      const itemToAdd = selectedVariant
+                        ? {
+                            ...prod,
+                            selectedVariant,
+                            name: `${prod.name} (${selectedVariant.name})`,
+                            price: selectedVariant.price !== undefined && selectedVariant.price !== null && selectedVariant.price !== '' ? Number(selectedVariant.price) : prod.price,
+                            stock: selectedVariant.stock !== undefined && selectedVariant.stock !== null && selectedVariant.stock !== '' ? Number(selectedVariant.stock) : prod.stock
+                          }
+                        : prod;
+                      addToCart(itemToAdd);
+                      navigate('/orders');
+                    }}
+                  />
+                ))}
+              </div>
+            ) : (
+              <p className="muted">No products found matching your criteria.</p>
+            );
+          })()}
         </div>
       </div>
+
+      {/* Variant Modal */}
+      <VariantModal
+        product={variantModalProduct}
+        isOpen={!!variantModalProduct}
+        onClose={handleCloseVariantModal}
+        onAddToCart={handleAddToCartFromModal}
+        storeOpen={storeOpen}
+      />
     </div>
   );
 };

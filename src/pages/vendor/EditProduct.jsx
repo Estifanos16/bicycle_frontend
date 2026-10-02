@@ -117,19 +117,6 @@ const EditProduct = () => {
         formDataToSend.append('images', file);
       });
 
-      // Also append single image for backward compatibility
-      if (formData.image) {
-        if (formData.image instanceof File) {
-          formDataToSend.append('image', formData.image);
-        } else if (
-          typeof formData.image === 'string' &&
-          formData.image.trim() !== '' &&
-          !formData.image.includes('{}')
-        ) {
-          formDataToSend.append('image', formData.image);
-        }
-      }
-
       await updateProduct(id, formDataToSend);
       setMessage('Product updated successfully!');
 
