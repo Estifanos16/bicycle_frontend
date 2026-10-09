@@ -54,7 +54,7 @@ const Orders = () => {
                 </span>
               </div>
               <p className="product-description">{product.description || 'No description provided.'}</p>
-              <p className="product-price">${product.price.toFixed(2)}</p>
+              <p className="product-price">ETB {product.price.toFixed(2)}</p>
               <p className="product-seller">Supermarket: {product.supermarketId?.name || 'Unknown'}</p>
               <button disabled={product.stock <= 0} onClick={() => addToCart(product)}>
                 Add to Cart
@@ -74,7 +74,7 @@ const Orders = () => {
                   <div className="cart-item" key={item._id}>
                     <div>
                       <strong>{item.name}</strong>
-                      <p>{item.quantity} x ${item.price.toFixed(2)}</p>
+                      <p>{item.quantity} x ETB {item.price.toFixed(2)}</p>
                     </div>
                     <button className="button-secondary" onClick={() => removeFromCart(item._id)}>
                       Remove
@@ -82,7 +82,7 @@ const Orders = () => {
                   </div>
                 ))}
                 <div className="cart-total">
-                  <strong>Total:</strong> ${orderTotal.toFixed(2)}
+                  <strong>Total:</strong> ETB {orderTotal.toFixed(2)}
                 </div>
                 <input
                   type="text"

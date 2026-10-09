@@ -50,7 +50,15 @@ const ProductCard = ({ product, onAddToCart, storeOpen = true, compact = false, 
   const stockBadge = getStockBadge();
 
   return (
-    <article className="product-card" style={{ padding: compact ? '8px' : '12px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+    <article 
+      className="product-card" 
+      style={{ 
+        padding: compact ? '8px' : '12px', 
+        display: 'flex', 
+        flexDirection: 'column', 
+        justifyContent: 'space-between'
+      }}
+    >
       <div>
         <div className="product-media" style={{ height: compact ? '120px' : '160px' }}>
           <img

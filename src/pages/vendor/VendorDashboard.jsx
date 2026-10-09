@@ -148,7 +148,7 @@ const VendorDashboard = () => {
             </div>
           </Link>
           <Link 
-            to="/products" 
+            to="/vendor/products" 
             style={{
               display:'flex',
               alignItems:'center',

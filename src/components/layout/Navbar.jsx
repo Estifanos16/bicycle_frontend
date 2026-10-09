@@ -106,12 +106,12 @@ const Navbar = () => {
             </button>
             <div className={`navbar-links ${menuOpen ? 'open' : ''}`}>
               {isSupermarket ? (
-                <Link to="/products" onClick={closeMobileMenu} style={{color: location.pathname === '/products' ? 'var(--color-primary)' : '', fontWeight: location.pathname === '/products' ? '700' : ''}}>Manage Products</Link>
+                <Link to="/vendor/products" onClick={closeMobileMenu} style={{color: location.pathname === '/vendor/products' ? 'var(--color-primary)' : '', fontWeight: location.pathname === '/vendor/products' ? '700' : ''}}>Manage Products</Link>
               ) : (
-                <Link to="/shop" onClick={closeMobileMenu} style={{color: location.pathname === '/shop' ? 'var(--color-primary)' : '', fontWeight: location.pathname === '/shop' ? '700' : ''}}>Products</Link>
+                <Link to="/products" onClick={closeMobileMenu} style={{color: location.pathname === '/products' ? 'var(--color-primary)' : '', fontWeight: location.pathname === '/products' ? '700' : ''}}>Products</Link>
               )}
               {isSupermarket && <Link to="/vendor/settings" onClick={closeMobileMenu} style={{color: location.pathname === '/vendor/settings' ? 'var(--color-primary)' : '', fontWeight: location.pathname === '/vendor/settings' ? '700' : ''}}>Store Settings</Link>}
-              {isCustomer && <Link to="/orders" onClick={closeMobileMenu} style={{color: location.pathname === '/orders' ? 'var(--color-primary)' : '', fontWeight: location.pathname === '/orders' ? '700' : ''}}>Shop</Link>}
+              {isCustomer && <Link to="/shop" onClick={closeMobileMenu} style={{color: location.pathname === '/shop' ? 'var(--color-primary)' : '', fontWeight: location.pathname === '/shop' ? '700' : ''}}>Shop</Link>}
               {isCustomer && <Link to="/my-orders" onClick={closeMobileMenu} style={{color: location.pathname === '/my-orders' ? 'var(--color-primary)' : '', fontWeight: location.pathname === '/my-orders' ? '700' : ''}}>My Orders</Link>}
               {isRider && <Link to="/rider-orders" onClick={closeMobileMenu} style={{color: location.pathname === '/rider-orders' ? 'var(--color-primary)' : '', fontWeight: location.pathname === '/rider-orders' ? '700' : ''}}>Pending Orders</Link>}
               {isRider && <Link to="/my-deliveries" onClick={closeMobileMenu} style={{color: location.pathname === '/my-deliveries' ? 'var(--color-primary)' : '', fontWeight: location.pathname === '/my-deliveries' ? '700' : ''}}>My Deliveries</Link>}

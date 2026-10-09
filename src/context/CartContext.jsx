@@ -21,16 +21,31 @@ export const CartProvider = ({ children }) => {
       }
     }
 
-    const existing = cart.find((p) => p._id === product._id);
+    // Use variantId if present for unique identification
+    const itemId = product.variantId ? `${product._id}-${product.variantId}` : product._id;
+    const existing = cart.find((p) => {
+      const existingItemId = p.variantId ? `${p._id}-${p.variantId}` : p._id;
+      return existingItemId === itemId;
+    });
+    
     if (existing) {
-      setCart(cart.map((p) => (p._id === product._id ? { ...p, quantity: p.quantity + 1 } : p)));
+      setCart(cart.map((p) => {
+        const existingItemId = p.variantId ? `${p._id}-${p.variantId}` : p._id;
+        return existingItemId === itemId ? { ...p, quantity: p.quantity + (product.quantity || 1) } : p;
+      }));
     } else {
-      setCart([...cart, { ...product, quantity: 1 }]);
+      setCart([...cart, { ...product, quantity: product.quantity || 1 }]);
     }
     setMessage('');
   };
 
-  const removeFromCart = (id) => setCart(cart.filter((p) => p._id !== id));
+  const removeFromCart = (id) => {
+    setCart(cart.filter((p) => {
+      // Handle both regular IDs and composite IDs (productId-variantId)
+      const itemId = p.variantId ? `${p._id}-${p.variantId}` : p._id;
+      return itemId !== id;
+    }));
+  };
 
   const clearCart = () => setCart([]);
 
@@ -44,10 +59,25 @@ export const CartProvider = ({ children }) => {
       return;
     }
 
+    // Generate unique idempotency key to prevent duplicate orders
+    const idempotencyKey = `${user?._id || user?.id}-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+
     const orderData = {
-      items: cart.map((p) => ({ productId: p._id, quantity: p.quantity })),
+      items: cart.map((p) => {
+        // Split composite ID if it exists (productId-variantId format)
+        const compositeId = p._id;
+        const productId = compositeId.includes('-') ? compositeId.split('-')[0] : compositeId;
+        const variantId = p.variantId || (compositeId.includes('-') ? compositeId.split('-')[1] : undefined);
+        
+        return {
+          productId,
+          variantId,
+          quantity: p.quantity
+        };
+      }),
       deliveryAddress,
-      supermarketId: cart[0].supermarketId?._id || cart[0].supermarketId,
+      vendorId: cart[0].supermarketId?._id || cart[0].supermarketId || cart[0].vendorId?._id || cart[0].vendorId,
+      idempotencyKey
     };
 
     try {

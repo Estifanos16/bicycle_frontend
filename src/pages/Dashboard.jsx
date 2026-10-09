@@ -72,8 +72,8 @@ const Dashboard = () => {
             <h2 style={{margin:'0 0 3px 0',fontSize:'0.95rem'}}>Up to 70% OFF</h2>
             <p className="muted" style={{fontSize:'0.7rem',margin:'0 0 6px 0'}}>Top brands, fastest shipping, exclusive deals.</p>
             <div style={{display:'flex',gap:'6px'}}>
-              <Link to="/shop" className="add-btn" style={{background:'var(--demo-color-secondary)',padding:'5px 10px',fontSize:'0.75rem'}}>Shop</Link>
-              <Link to="/shop" className="add-btn" style={{background:'#fff',color:'var(--demo-color-primary)',border:'1px solid var(--color-border)',padding:'5px 10px',fontSize:'0.75rem'}}>All</Link>
+              <Link to="/products" className="add-btn" style={{background:'var(--demo-color-secondary)',padding:'5px 10px',fontSize:'0.75rem'}}>Shop</Link>
+              <Link to="/products" className="add-btn" style={{background:'#fff',color:'var(--demo-color-primary)',border:'1px solid var(--color-border)',padding:'5px 10px',fontSize:'0.75rem'}}>All</Link>
             </div>
           </div>
         </div>
@@ -137,7 +137,7 @@ const Dashboard = () => {
                   <div className="rating"><span style={{color:'#f5b450',fontSize:'0.8rem'}}>★</span><span className="small muted" style={{marginLeft:'3px',fontSize:'0.7rem'}}>{(p.stock || 0) > 0 ? 'In stock' : 'Out of stock'}</span></div>
                   <div className="price" style={{fontSize:'0.9rem'}}>${p.price?.toFixed(2)}</div>
                 </div>
-                <button className="add-btn" onClick={() => { addToCart(p); navigate('/orders'); }} style={{padding:'5px 10px',fontSize:'0.75rem'}}>Add to Cart</button>
+                <button className="add-btn" onClick={() => { addToCart(p); navigate('/shop'); }} style={{padding:'5px 10px',fontSize:'0.75rem'}}>Add to Cart</button>
               </div>
             </article>
           ))}

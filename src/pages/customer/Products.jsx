@@ -4,6 +4,8 @@ import { AuthContext } from '../../context/AuthContext';
 import { Link } from 'react-router-dom';
 import { useCart } from '../../context/CartContext';
 import { useLocation, useNavigate } from 'react-router-dom';
+import ProductCard from '../../components/product/ProductCard';
+import VariantModal from '../../components/product/VariantModal';
 
 const Products = () => {
   const { user } = useContext(AuthContext);
@@ -16,6 +18,7 @@ const Products = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [message, setMessage] = useState('');
+  const [variantModalProduct, setVariantModalProduct] = useState(null);
 
   // Predefined categories for supermarket owners
   const predefinedCategories = [
@@ -86,6 +89,7 @@ const Products = () => {
     const category = params.get('category');
     if (q) setSearchTerm(q);
     if (category) setSelectedCategory(category);
+    else setSelectedCategory('All');
   }, [location.search, user]);
 
   const handleCreateOrUpdate = async (e) => {
@@ -155,8 +159,21 @@ const Products = () => {
 
   const categories = ['All', ...Array.from(new Set([...predefinedCategories, ...products.map((product) => product.category || 'General')]))].sort();
 
+  const handleOpenVariantModal = (product) => {
+    setVariantModalProduct(product);
+  };
+
+  const handleCloseVariantModal = () => {
+    setVariantModalProduct(null);
+  };
+
+  const handleAddToCartFromModal = (item) => {
+    addToCart(item);
+    navigate('/shop');
+  };
+
   return (
-    <div className="container">
+    <div className="container" style={{width: '100%', maxWidth: '100%'}}>
       <div className="page-header">
         <h2>Products</h2>
         <p>Browse the latest supermarket products and add new items if you manage a store.</p>
@@ -168,12 +185,18 @@ const Products = () => {
           placeholder="Search products by name, description, or category..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
+          style={{
+            width:'100%',
+            padding:'12px 16px',
+            border:'1px solid #E5E7EB',
+            borderRadius:'8px',
+            fontSize:'0.95rem',
+            outline:'none',
+            transition:'all 0.2s'
+          }}
+          onFocus={(e) => e.target.style.borderColor = '#FF5500'}
+          onBlur={(e) => e.target.style.borderColor = '#E5E7EB'}
         />
-        <select value={selectedCategory} onChange={(e) => setSelectedCategory(e.target.value)}>
-          {categories.map((category) => (
-            <option key={category} value={category}>{category}</option>
-          ))}
-        </select>
       </div>
 
       {message && <div className="alert">{message}</div>}
@@ -234,39 +257,90 @@ const Products = () => {
         <div className="card alert">
           <h3>Customer Shop</h3>
           <p>Go to the shop page to add products to your cart and place an order.</p>
-          <Link to="/orders" className="button-secondary">Go to Shop</Link>
+          <Link to="/shop" className="button-secondary">Go to Shop</Link>
         </div>
       )}
 
-      <div className="products-grid">
+      {/* Responsive Product Grid with ProductCard */}
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 280px))',
+        gap: '24px',
+        width: '100%',
+        justifyContent: 'start'
+      }}>
         {filteredProducts.map((product) => (
-          <div className="product-card" key={product._id}>
-            <div className="product-card-header">
-              <h3>{product.name}</h3>
-              <span className={`badge ${product.stock > 0 ? 'badge-success' : 'badge-warning'}`}>
-                {product.stock > 0 ? 'In stock' : 'Out of stock'}
-              </span>
-            </div>
-            <p className="product-category">Category: {product.category || 'General'}</p>
-            <p className="product-description text-xs text-gray-500 line-clamp-2">{product.description || 'No description available.'}</p>
-            <p className="product-price">${product.price.toFixed(2)} <span style={{ fontSize: '0.8rem', color: '#666', fontWeight: 'normal' }}>/ {product.unit || 'piece'}</span></p>
-            <p className="product-seller">Seller: {product.supermarketId?.name || 'Supermarket'}</p>
-            {user?.roles?.includes('supermarket') && product.supermarketId?._id === user._id && (
-              <div className="product-actions">
-                <button className="button-secondary" onClick={() => handleEdit(product)}>
-                  Edit
-                </button>
-                <button className="button-secondary" onClick={() => handleDelete(product._id)}>
-                  Delete
-                </button>
-              </div>
-            )}
-            <button className="add-btn" disabled={product.stock <= 0} onClick={() => { addToCart(product); navigate('/orders'); }}>
-              Add to Cart
-            </button>
-          </div>
+          <ProductCard
+            key={product._id}
+            product={product}
+            storeOpen={true}
+            onOpenVariantModal={handleOpenVariantModal}
+            onAddToCart={(prod, selectedVariant) => {
+              const itemToAdd = selectedVariant
+                ? {
+                    ...prod,
+                    selectedVariant,
+                    name: `${prod.name} (${selectedVariant.name})`,
+                    price: selectedVariant.price !== undefined && selectedVariant.price !== null && selectedVariant.price !== '' ? Number(selectedVariant.price) : prod.price,
+                    stock: selectedVariant.stock !== undefined && selectedVariant.stock !== null && selectedVariant.stock !== '' ? Number(selectedVariant.stock) : prod.stock
+                  }
+                : prod;
+              addToCart(itemToAdd);
+              navigate('/shop');
+            }}
+          />
         ))}
       </div>
+
+      {/* Vendor Edit/Delete Actions (shown below each product for vendors) */}
+      {user?.roles?.includes('supermarket') && filteredProducts.some(p => p.supermarketId?._id === user._id) && (
+        <div style={{marginTop:'24px'}}>
+          <h3 style={{marginBottom:'16px'}}>Your Products Management</h3>
+          {filteredProducts.filter(p => p.supermarketId?._id === user._id).map((product) => (
+            <div key={product._id} style={{
+              padding:'16px',
+              background:'#F9FAFB',
+              borderRadius:'8px',
+              marginBottom:'12px',
+              border:'1px solid #E5E7EB'
+            }}>
+              <div style={{display:'flex', justifyContent:'space-between', alignItems:'center'}}>
+                <div>
+                  <strong>{product.name}</strong>
+                  <div style={{fontSize:'0.85rem', color:'#6B7280'}}>
+                    ETB {product.price.toFixed(2)} • Stock: {product.stock}
+                  </div>
+                </div>
+                <div style={{display:'flex', gap:'8px'}}>
+                  <button
+                    className="button-secondary"
+                    onClick={() => handleEdit(product)}
+                    style={{padding:'6px 12px', fontSize:'0.85rem'}}
+                  >
+                    Edit
+                  </button>
+                  <button
+                    className="button-secondary"
+                    onClick={() => handleDelete(product._id)}
+                    style={{padding:'6px 12px', fontSize:'0.85rem', background:'#FEE2E2', borderColor:'#FCA5A5', color:'#991B1B'}}
+                  >
+                    Delete
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Variant Modal */}
+      <VariantModal
+        product={variantModalProduct}
+        isOpen={!!variantModalProduct}
+        onClose={handleCloseVariantModal}
+        onAddToCart={handleAddToCartFromModal}
+        storeOpen={true}
+      />
     </div>
   );
 };

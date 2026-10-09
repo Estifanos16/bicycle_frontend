@@ -1,9 +1,8 @@
 import React, { useContext, useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useLocation, useNavigate } from 'react-router-dom';
 import { useVendor } from '../../context/VendorContext';
 import { getProducts } from '../../services/api';
 import { useCart } from '../../context/CartContext';
-import { useNavigate } from 'react-router-dom';
 
 import ProductCard from '../../components/product/ProductCard';
 import VariantModal from '../../components/product/VariantModal';
@@ -16,8 +15,20 @@ const Storefront = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [variantModalProduct, setVariantModalProduct] = useState(null);
+  const { search } = useLocation();
   const { addToCart } = useCart();
   const navigate = useNavigate();
+
+  // Sync category from URL params
+  useEffect(() => {
+    const params = new URLSearchParams(search);
+    const categoryParam = params.get('category');
+    if (categoryParam) {
+      setSelectedCategory(categoryParam);
+    } else {
+      setSelectedCategory('All');
+    }
+  }, [search]);
 
   const storeOpen = isStoreOpen();
 
@@ -37,7 +48,7 @@ const Storefront = () => {
 
   const handleAddToCartFromModal = (item) => {
     addToCart(item);
-    navigate('/orders');
+    navigate('/shop');
   };
 
   useEffect(() => {
@@ -268,40 +279,6 @@ const Storefront = () => {
             />
           </div>
 
-          {/* Category Pills */}
-          <div style={{marginBottom:'20px', display:'flex', flexWrap:'wrap', gap:'8px'}}>
-            {['All', ...Array.from(new Set([...predefinedCategories, ...products.map((product) => product.category || 'General')]))].sort().map((category) => (
-              <button
-                key={category}
-                type="button"
-                onClick={() => setSelectedCategory(category)}
-                style={{
-                  padding:'8px 16px',
-                  borderRadius:'20px',
-                  border: selectedCategory === category ? '1.5px solid #FF5500' : '1px solid #E5E7EB',
-                  background: selectedCategory === category ? '#FFF5F0' : '#F9FAFB',
-                  color: selectedCategory === category ? '#FF5500' : '#374151',
-                  fontWeight: selectedCategory === category ? '600' : 'normal',
-                  cursor: 'pointer',
-                  fontSize:'0.85rem',
-                  transition:'all 0.2s'
-                }}
-                onMouseEnter={(e) => {
-                  if (selectedCategory !== category) {
-                    e.target.style.borderColor = '#FF5500';
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (selectedCategory !== category) {
-                    e.target.style.borderColor = '#E5E7EB';
-                  }
-                }}
-              >
-                {category}
-              </button>
-            ))}
-          </div>
-
           {loading ? (
             <p className="muted">Loading products...</p>
           ) : (() => {
@@ -317,7 +294,7 @@ const Storefront = () => {
             });
 
             return filteredProducts.length > 0 ? (
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+              <div className="grid grid-cols-[repeat(auto-fit,minmax(240px,1fr))] gap-6 w-full items-start justify-start">
                 {filteredProducts.map((product) => (
                   <ProductCard
                     key={product._id}
@@ -335,7 +312,7 @@ const Storefront = () => {
                           }
                         : prod;
                       addToCart(itemToAdd);
-                      navigate('/orders');
+                      navigate('/shop');
                     }}
                   />
                 ))}

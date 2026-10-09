@@ -48,7 +48,7 @@ function AppContent() {
 
   const hideCategoryBar = [
     '/login', '/register', '/profile',
-    '/vendor/settings', '/products',
+    '/vendor/settings',
     '/vendor/products/new',
   ].includes(location.pathname) ||
     (location.pathname.startsWith('/vendor/products/') && location.pathname.endsWith('/edit'));
@@ -72,7 +72,7 @@ function AppContent() {
 
         {/* Vendor */}
         <Route
-          path="/products"
+          path="/vendor/products"
           element={
             <PrivateRoute roles={['supermarket']}>
               <VendorProducts />
@@ -113,13 +113,13 @@ function AppContent() {
         />
 
         {/* Customer */}
-        <Route path="/shop" element={<Products />} />
+        <Route path="/products" element={<Products />} />
         <Route path="/store/:storeSlug" element={<Storefront />} />
         <Route path="/saved" element={<Saved />} />
         <Route path="/favorites" element={<Favorites />} />
         <Route path="/payment" element={<Payment />} />
         <Route
-          path="/orders"
+          path="/shop"
           element={
             <PrivateRoute roles={['customer']}>
               <Orders />
