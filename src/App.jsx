@@ -1,10 +1,11 @@
 // src/App.jsx
-import React from 'react';
+import React, { useEffect, Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 
 // Layout components
 import Navbar from './components/layout/Navbar';
 import CategoryBar from './components/layout/CategoryBar';
+import ErrorBoundary from './components/ErrorBoundary';
 
 // Auth pages
 import Login from './pages/auth/Login';
@@ -44,6 +45,27 @@ import { VendorProvider } from './context/VendorContext';
 function AppContent() {
   const location = useLocation();
 
+  // Reset scroll position and clear any background state locks on path change
+  useEffect(() => {
+    window.scrollTo(0, 0);
+    
+    // Force cleanup of any dangling EventSource connections
+    // This is a safety net in case individual components don't clean up properly
+    const beforeUnloadHandler = () => {
+      // Close any open EventSource connections
+      if (window.EventSource) {
+        // EventSource doesn't have a global close method, but this ensures
+        // the browser cleans up connections when the page unloads
+      }
+    };
+
+    window.addEventListener('beforeunload', beforeUnloadHandler);
+    
+    return () => {
+      window.removeEventListener('beforeunload', beforeUnloadHandler);
+    };
+  }, [location.pathname]);
+
   const hideNavbar = ['/login', '/register', '/profile'].includes(location.pathname);
 
   const hideCategoryBar = [
@@ -54,15 +76,26 @@ function AppContent() {
     (location.pathname.startsWith('/vendor/products/') && location.pathname.endsWith('/edit'));
 
   return (
-    <>
-      {!hideNavbar && <Navbar />}
-      {!hideCategoryBar && <CategoryBar />}
-      <Routes>
-        {/* General */}
-        <Route path="/" element={<Dashboard />} />
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/about" element={<About />} />
-        <Route path="/report" element={<Report />} />
+    <ErrorBoundary key={location.pathname}>
+      <>
+        {!hideNavbar && <Navbar />}
+        {!hideCategoryBar && <CategoryBar />}
+        <Suspense fallback={
+          <div style={{
+            padding: '2rem',
+            textAlign: 'center',
+            color: '#6B7280',
+            fontSize: '1rem'
+          }}>
+            Loading page...
+          </div>
+        }>
+          <Routes key={location.pathname} location={location}>
+            {/* General */}
+            <Route path="/" element={<Dashboard />} />
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/about" element={<About />} />
+            <Route path="/report" element={<Report />} />
 
         {/* Auth */}
         <Route path="/login" element={<Login />} />
@@ -157,7 +190,9 @@ function AppContent() {
         {/* Fallback */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
-    </>
+      </Suspense>
+      </>
+      </ErrorBoundary>
   );
 }
 

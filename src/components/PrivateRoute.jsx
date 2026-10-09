@@ -24,7 +24,7 @@ const PrivateRoute = ({ roles, children }) => {
             animation: 'spin 1s linear infinite',
             margin: '0 auto 16px'
           }} />
-          <p style={{ color: '#6b7280', fontSize: '0.9rem' }}>Loading...</p>
+          <p style={{ color: '#6b7280', fontSize: '0.9rem' }}>Loading session...</p>
         </div>
         <style>{`
           @keyframes spin {
@@ -40,8 +40,10 @@ const PrivateRoute = ({ roles, children }) => {
     return <Navigate to="/login" />;
   }
 
-  if (roles && !user?.roles?.some(role => roles.includes(role))) {
-    console.log('PrivateRoute - User roles:', user.roles, 'do not match required:', roles);
+  // Use optional chaining to safely check roles during route transitions
+  const userRoles = user?.roles || [];
+  if (roles && roles.length > 0 && !userRoles.some(role => roles.includes(role))) {
+    console.log('PrivateRoute - User roles:', userRoles, 'do not match required:', roles);
     return <Navigate to="/login" />;
   }
 

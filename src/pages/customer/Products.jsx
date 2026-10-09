@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect, useContext, useRef } from 'react';
 import { getProducts, getVendorProducts, createProduct, updateProduct, deleteProduct } from '../../services/api';
 import { AuthContext } from '../../context/AuthContext';
 import { Link } from 'react-router-dom';
@@ -19,6 +19,8 @@ const Products = () => {
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [message, setMessage] = useState('');
   const [variantModalProduct, setVariantModalProduct] = useState(null);
+  const [isStreaming, setIsStreaming] = useState(false);
+  const eventSourceRef = useRef(null);
 
   // Predefined categories for supermarket owners
   const predefinedCategories = [
@@ -39,7 +41,8 @@ const Products = () => {
     'Pet Supplies'
   ];
 
-  const fetchProducts = async () => {
+  const fetchProducts = () => {
+    console.log('fetchProducts called');
     try {
       const urlParams = new URLSearchParams(location.search);
       const vendorIdParam = urlParams.get('vendorId');
@@ -54,35 +57,109 @@ const Products = () => {
                            user?.role === 'vendor';
       const vendorId = vendorIdParam || (isVendorUser ? (user?.vendorId || user?.supermarketId || user?._id || user?.id) : null);
 
-      const requestParams = {};
-      if (vendorId) requestParams.vendorId = vendorId;
-      if (categoryParam && categoryParam !== 'All') requestParams.category = categoryParam;
-      if (qParam) requestParams.q = qParam;
+      // Build SSE URL with query parameters
+      const baseURL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+      const sseUrl = new URL(`${baseURL}/api/products/stream`);
+      if (vendorId) sseUrl.searchParams.append('vendorId', vendorId);
+      if (categoryParam && categoryParam !== 'All') sseUrl.searchParams.append('category', categoryParam);
+      if (qParam) sseUrl.searchParams.append('q', qParam);
 
-      const response = await getProducts(requestParams);
-      let fetchedProducts = response.data || [];
-      if (isVendorUser) {
-        const userVendorIds = [
-          user?.vendorId?._id || user?.vendorId,
-          user?.supermarketId?._id || user?.supermarketId,
-          user?._id,
-          user?.id
-        ].filter(Boolean).map(id => id.toString());
+      console.log('SSE URL:', sseUrl.toString());
 
-        fetchedProducts = fetchedProducts.filter(p => {
-          const pVendorId = (p.supermarketId?._id || p.supermarketId || p.vendorId?._id || p.vendorId || p.vendor?._id || p.vendor)?.toString();
-          return pVendorId && userVendorIds.includes(pVendorId);
+      // Reset products and start streaming
+      setProducts([]);
+      setIsStreaming(true);
+
+      const eventSource = new EventSource(sseUrl.toString());
+      eventSourceRef.current = eventSource;
+
+      eventSource.onmessage = (event) => {
+        console.log('SSE message received');
+        try {
+          const newProduct = JSON.parse(event.data);
+          setProducts((prev) => [...prev, newProduct]);
+        } catch (err) {
+          console.error('Error parsing SSE data:', err);
+        }
+      };
+
+      eventSource.addEventListener('end', () => {
+        console.log('SSE stream ended');
+        setIsStreaming(false);
+        eventSource.close();
+        
+        // Apply vendor filtering after streaming completes
+        if (isVendorUser) {
+          setProducts((prevProducts) => {
+            const userVendorIds = [
+              user?.vendorId?._id || user?.vendorId,
+              user?.supermarketId?._id || user?.supermarketId,
+              user?._id,
+              user?.id
+            ].filter(Boolean).map(id => id.toString());
+
+            return prevProducts.filter(p => {
+              const pVendorId = (p.supermarketId?._id || p.supermarketId || p.vendorId?._id || p.vendorId || p.vendor?._id || p.vendor)?.toString();
+              return pVendorId && userVendorIds.includes(pVendorId);
+            });
+          });
+        }
+      });
+
+      eventSource.onerror = (err) => {
+        console.error('SSE connection error:', err);
+        setIsStreaming(false);
+        eventSource.close();
+        
+        // Fallback to regular API on SSE error
+        console.log('Falling back to regular API');
+        const requestParams = {};
+        if (vendorId) requestParams.vendorId = vendorId;
+        if (categoryParam && categoryParam !== 'All') requestParams.category = categoryParam;
+        if (qParam) requestParams.q = qParam;
+
+        getProducts(requestParams).then(response => {
+          console.log('API response received:', response.data);
+          let fetchedProducts = response.data || [];
+          if (isVendorUser) {
+            const userVendorIds = [
+              user?.vendorId?._id || user?.vendorId,
+              user?.supermarketId?._id || user?.supermarketId,
+              user?._id,
+              user?.id
+            ].filter(Boolean).map(id => id.toString());
+
+            fetchedProducts = fetchedProducts.filter(p => {
+              const pVendorId = (p.supermarketId?._id || p.supermarketId || p.vendorId?._id || p.vendorId || p.vendor?._id || p.vendor)?.toString();
+              return pVendorId && userVendorIds.includes(pVendorId);
+            });
+          }
+          setProducts(fetchedProducts);
+        }).catch(err => {
+          console.error(err);
+          setMessage('Unable to load products.');
         });
-      }
-      setProducts(fetchedProducts);
+      };
+
+      // Cleanup function to close EventSource on unmount
+      return () => {
+        console.log('Cleaning up EventSource');
+        if (eventSourceRef.current) {
+          eventSourceRef.current.close();
+          eventSourceRef.current = null;
+        }
+      };
     } catch (err) {
-      console.error(err);
+      console.error('Error in fetchProducts:', err);
       setMessage('Unable to load products.');
+      setIsStreaming(false);
+      return () => {};
     }
   };
 
   useEffect(() => {
-    fetchProducts();
+    let isMounted = true;
+    const cleanup = fetchProducts();
     // initialize filters from URL params (search & category)
     const params = new URLSearchParams(location.search);
     const q = params.get('q') || params.get('query');
@@ -90,7 +167,14 @@ const Products = () => {
     if (q) setSearchTerm(q);
     if (category) setSelectedCategory(category);
     else setSelectedCategory('All');
-  }, [location.search, user]);
+    
+    return () => {
+      isMounted = false;
+      if (cleanup && typeof cleanup === 'function') {
+        cleanup();
+      }
+    };
+  }, [location.search, user, location]);
 
   const handleCreateOrUpdate = async (e) => {
     e.preventDefault();
@@ -174,9 +258,20 @@ const Products = () => {
 
   return (
     <div className="container" style={{width: '100%', maxWidth: '100%'}}>
-      <div className="page-header">
-        <h2>Products</h2>
-        <p>Browse the latest supermarket products and add new items if you manage a store.</p>
+      <div className="page-header" style={{display: 'flex', alignItems: 'center', justifyContent: 'space-between'}}>
+        <div>
+          <h2>Products</h2>
+          <p>Browse the latest supermarket products and add new items if you manage a store.</p>
+        </div>
+        {isStreaming && (
+          <span className="animate-pulse" style={{
+            color: '#FF5500',
+            fontSize: '0.875rem',
+            fontWeight: '600'
+          }}>
+            ⚡ Loading items...
+          </span>
+        )}
       </div>
 
       <div className="product-filters">

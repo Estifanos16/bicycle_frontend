@@ -29,7 +29,7 @@ export const AuthProvider = ({ children }) => {
                 const userData = { 
                     id: payload.id, 
                     _id: payload.id,
-                    roles: payload.roles, 
+                    roles: payload.roles || [], // Ensure roles is always an array
                     email: payload.email, 
                     name: payload.name,
                     vendorId: payload.vendorId || payload.supermarketId,
