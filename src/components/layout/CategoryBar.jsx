@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 
 const categories = [
   { key: 'electronics', label: 'Electronics', mark: 'E' },
@@ -26,11 +26,17 @@ const categories = [
 ];
 
 const CategoryBar = () => {
+  const location = useLocation();
   const [isVisible, setIsVisible] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(false);
   const scrollRef = useRef(null);
+
+  // Do not render CategoryBar on vendor routes or about page
+  if (location.pathname.startsWith('/vendor') || location.pathname === '/about') {
+    return null;
+  }
 
   useEffect(() => {
     const handleScroll = () => {
@@ -146,7 +152,7 @@ const CategoryBar = () => {
           {categories.map((category) => (
             <Link
               key={category.key}
-              to={`/shop?category=${encodeURIComponent(category.label)}`}
+              to={`/products?category=${encodeURIComponent(category.label)}`}
               className="category"
               style={{
                 display: 'flex',
