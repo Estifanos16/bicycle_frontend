@@ -358,17 +358,24 @@ const Products = () => {
 
       {/* Responsive Product Grid with ProductCard */}
       <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 280px))',
-        gap: '24px',
-        width: '100%',
-        justifyContent: 'start'
+        padding: '0 24px'
       }}>
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: filteredProducts.length <= 6
+            ? `repeat(${filteredProducts.length}, minmax(180px, 240px))`
+            : 'repeat(auto-fill, minmax(180px, 240px))',
+          gap: '20px',
+          justifyContent: 'center',
+          width: '100%',
+          overflowX: 'hidden'
+        }}>
         {filteredProducts.map((product) => (
           <ProductCard
             key={product._id}
             product={product}
             storeOpen={true}
+            compact={true}
             onOpenVariantModal={handleOpenVariantModal}
             onAddToCart={(prod, selectedVariant) => {
               const itemToAdd = selectedVariant
@@ -385,6 +392,7 @@ const Products = () => {
             }}
           />
         ))}
+        </div>
       </div>
 
       {/* Vendor Edit/Delete Actions (shown below each product for vendors) */}

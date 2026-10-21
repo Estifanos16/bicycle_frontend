@@ -116,31 +116,44 @@ const Dashboard = () => {
           </div>
         </div>
 
-        <div className="products-grid" style={{gap:'8px'}}>
+        <div style={{
+          padding: '0 24px'
+        }}>
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: products.length <= 6
+              ? `repeat(${products.length}, minmax(180px, 240px))`
+              : 'repeat(auto-fill, minmax(180px, 240px))',
+            gap: '20px',
+            justifyContent: 'center',
+            width: '100%',
+            overflowX: 'hidden'
+          }}>
           {products.map((p) => (
-            <article className="product-card" key={p._id} style={{padding:'8px'}}>
-              <div className="product-media" style={{height:'120px'}}>
-                <img 
-                  src={(p.images && p.images[0]) || p.image || `https://via.placeholder.com/800x800?text=${encodeURIComponent(p.name)}`} 
-                  alt={p.name} 
-                  style={{width:'100%',height:'100%',objectFit:'cover'}} 
+            <article className="product-card" key={p._id} style={{padding:'8px', width:'100%'}}>
+              <div className="product-media" style={{height:'120px', width:'100%'}}>
+                <img
+                  src={(p.images && p.images[0]) || p.image || `https://via.placeholder.com/800x800?text=${encodeURIComponent(p.name)}`}
+                  alt={p.name}
+                  style={{width:'100%',height:'100%',objectFit:'cover'}}
                 />
               </div>
-              <div className="product-body" style={{padding:'6px 0 0 0'}}>
+              <div className="product-body" style={{padding:'6px 0 0 0', width:'100%'}}>
                 <div className="product-title" style={{fontSize:'0.85rem',marginBottom:'2px',lineHeight:'1.2'}}>{p.name}</div>
                 {p.description && (
                   <p className="product-description text-xs text-gray-500 line-clamp-2" style={{fontSize:'0.75rem', color:'#6B7280', margin:'2px 0 4px 0', lineHeight:'1.2'}} title={p.description}>
                     {p.description}
                   </p>
                 )}
-                <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'6px'}}>
+                <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'6px', width:'100%'}}>
                   <div className="rating"><span style={{color:'#f5b450',fontSize:'0.8rem'}}>★</span><span className="small muted" style={{marginLeft:'3px',fontSize:'0.7rem'}}>{(p.stock || 0) > 0 ? 'In stock' : 'Out of stock'}</span></div>
                   <div className="price" style={{fontSize:'0.9rem'}}>${p.price?.toFixed(2)}</div>
                 </div>
-                <button className="add-btn" onClick={() => { addToCart(p); navigate('/shop'); }} style={{padding:'5px 10px',fontSize:'0.75rem'}}>Add to Cart</button>
+                <button className="add-btn" onClick={() => { addToCart(p); navigate('/shop'); }} style={{padding:'5px 10px',fontSize:'0.75rem', width:'100%'}}>Add to Cart</button>
               </div>
             </article>
           ))}
+          </div>
         </div>
       </div>
 

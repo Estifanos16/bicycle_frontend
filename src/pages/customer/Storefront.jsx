@@ -294,12 +294,13 @@ const Storefront = () => {
             });
 
             return filteredProducts.length > 0 ? (
-              <div className="grid grid-cols-[repeat(auto-fit,minmax(240px,1fr))] gap-6 w-full items-start justify-start">
+              <div className="grid grid-cols-[repeat(auto-fit,minmax(180px,1fr))] lg:grid-cols-6 gap-6 w-full items-start justify-start">
                 {filteredProducts.map((product) => (
                   <ProductCard
                     key={product._id}
                     product={product}
                     storeOpen={storeOpen}
+                    compact={true}
                     onOpenVariantModal={handleOpenVariantModal}
                     onAddToCart={(prod, selectedVariant) => {
                       const itemToAdd = selectedVariant

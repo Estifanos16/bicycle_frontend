@@ -65,23 +65,27 @@ const Orders = () => {
 
         <aside className="cart-panel">
           <div className="card">
-            <h3>Your Cart</h3>
+            <h3 style={{fontSize: '1rem', marginBottom: '12px'}}>Your Cart</h3>
             {cart.length === 0 ? (
-              <p>Your cart is empty. Pick a product to begin.</p>
+              <p style={{fontSize: '0.85rem', color: '#6B7280'}}>Your cart is empty. Pick a product to begin.</p>
             ) : (
               <>
                 {cart.map((item) => (
                   <div className="cart-item" key={item._id}>
-                    <div>
+                    <div style={{flex: 1}}>
                       <strong>{item.name}</strong>
                       <p>{item.quantity} x ETB {item.price.toFixed(2)}</p>
                     </div>
-                    <button className="button-secondary" onClick={() => removeFromCart(item._id)}>
+                    <button 
+                      className="button-secondary" 
+                      onClick={() => removeFromCart(item._id)}
+                      style={{padding: '4px 8px', fontSize: '0.75rem'}}
+                    >
                       Remove
                     </button>
                   </div>
                 ))}
-                <div className="cart-total">
+                <div className="cart-total" style={{marginTop: '12px', fontSize: '0.9rem'}}>
                   <strong>Total:</strong> ETB {orderTotal.toFixed(2)}
                 </div>
                 <input
@@ -89,8 +93,13 @@ const Orders = () => {
                   placeholder="Delivery Address"
                   value={deliveryAddress}
                   onChange={(e) => setDeliveryAddress(e.target.value)}
+                  style={{padding: '8px', fontSize: '0.85rem', marginTop: '8px'}}
                 />
-                <button onClick={handleOrder} disabled={!deliveryAddress}>
+                <button 
+                  onClick={handleOrder} 
+                  disabled={!deliveryAddress}
+                  style={{padding: '8px', fontSize: '0.85rem', marginTop: '8px'}}
+                >
                   Place Order
                 </button>
               </>

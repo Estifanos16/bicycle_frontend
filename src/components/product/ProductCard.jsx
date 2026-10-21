@@ -50,42 +50,60 @@ const ProductCard = ({ product, onAddToCart, storeOpen = true, compact = false, 
   const stockBadge = getStockBadge();
 
   return (
-    <article 
-      className="product-card" 
-      style={{ 
-        padding: compact ? '8px' : '12px', 
-        display: 'flex', 
-        flexDirection: 'column', 
-        justifyContent: 'space-between'
+    <article
+      className="product-card"
+      style={{
+        padding: compact ? '6px' : '8px',
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'space-between',
+        backgroundColor: '#FFFFFF',
+        borderRadius: '8px',
+        border: '1px solid #F3F4F6',
+        boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)',
+        transition: 'box-shadow 0.2s ease',
+        width: '100%',
+        maxWidth: '240px'
       }}
     >
       <div>
-        <div className="product-media" style={{ height: compact ? '120px' : '160px' }}>
+        <div className="product-media" style={{
+          height: compact ? '100px' : '120px',
+          backgroundColor: '#F9FAFB',
+          borderRadius: '6px',
+          overflow: 'hidden',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          marginBottom: '8px',
+          width: '100%'
+        }}>
           <img
             src={imageSrc}
             alt={product.name}
-            style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '6px' }}
+            style={{ width: '100%', height: '100%', objectFit: 'contain', padding: '6px' }}
           />
         </div>
-        <div className="product-body" style={{ padding: '8px 0 0 0' }}>
+        <div className="product-body" style={{ padding: '0', width: '100%' }}>
           {/* Vendor Name */}
-          <div style={{ fontSize: '0.75rem', color: '#6B7280', marginBottom: '2px' }}>
+          <div style={{ fontSize: '0.7rem', color: '#6B7280', marginBottom: '2px' }}>
             {vendorName}
           </div>
 
-          <div className="product-title" style={{ fontSize: compact ? '0.85rem' : '0.95rem', marginBottom: '2px', lineHeight: '1.2', fontWeight: '600' }}>
+          <div className="product-title" style={{ fontSize: compact ? '0.75rem' : '0.8rem', marginBottom: '2px', lineHeight: '1.2', fontWeight: '600', color: '#1F2937', width: '100%' }}>
             {product.name}
           </div>
 
           {/* Product Description right below title */}
           {product.description && (
             <p
-              className="product-description text-xs text-gray-500 line-clamp-2"
+              className="product-description text-xs text-gray-500 line-clamp-1"
               style={{
-                fontSize: compact ? '0.75rem' : '0.8rem',
+                fontSize: compact ? '0.65rem' : '0.7rem',
                 color: '#6B7280',
                 margin: '2px 0 6px 0',
-                lineHeight: '1.3'
+                lineHeight: '1.2',
+                width: '100%'
               }}
               title={product.description}
             >
@@ -95,17 +113,17 @@ const ProductCard = ({ product, onAddToCart, storeOpen = true, compact = false, 
 
           {/* Variant Selector Chips/Toggles */}
           {hasVariants && (
-            <div style={{ margin: '6px 0', display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
+            <div style={{ margin: '4px 0', display: 'flex', flexWrap: 'wrap', gap: '3px' }}>
               {variants.map((v, idx) => (
                 <button
                   key={idx}
                   type="button"
                   onClick={() => setSelectedVariantIndex(idx)}
                   style={{
-                    padding: '2px 8px',
-                    fontSize: '0.75rem',
-                    borderRadius: '12px',
-                    border: idx === selectedVariantIndex ? '1.5px solid #FF5500' : '1px solid #D1D5DB',
+                    padding: '1px 6px',
+                    fontSize: '0.65rem',
+                    borderRadius: '10px',
+                    border: idx === selectedVariantIndex ? '1px solid #FF5500' : '1px solid #D1D5DB',
                     background: idx === selectedVariantIndex ? '#FFF5F0' : '#F9FAFB',
                     color: idx === selectedVariantIndex ? '#FF5500' : '#374151',
                     fontWeight: idx === selectedVariantIndex ? '600' : 'normal',
@@ -119,12 +137,12 @@ const ProductCard = ({ product, onAddToCart, storeOpen = true, compact = false, 
             </div>
           )}
 
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', margin: '8px 0' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', margin: '6px 0', width: '100%' }}>
             {/* Stock Badge */}
             <div style={{
-              padding: '2px 8px',
-              borderRadius: '12px',
-              fontSize: compact ? '0.7rem' : '0.75rem',
+              padding: '2px 6px',
+              borderRadius: '10px',
+              fontSize: compact ? '0.65rem' : '0.7rem',
               fontWeight: '500',
               color: stockBadge.color,
               background: stockBadge.bg
@@ -133,8 +151,8 @@ const ProductCard = ({ product, onAddToCart, storeOpen = true, compact = false, 
             </div>
 
             {/* Price */}
-            <div className="price" style={{ fontSize: compact ? '0.9rem' : '1rem', fontWeight: '700' }}>
-              ETB {currentPrice.toFixed(2)} <span style={{ fontSize: '0.75rem', color: '#6B7280', fontWeight: 'normal' }}>/ {unitLabel}</span>
+            <div className="price" style={{ fontSize: compact ? '0.8rem' : '0.85rem', fontWeight: '700', color: '#FF5500' }}>
+              ETB {currentPrice.toFixed(2)} <span style={{ fontSize: '0.65rem', color: '#6B7280', fontWeight: 'normal' }}>/ {unitLabel}</span>
             </div>
           </div>
         </div>
@@ -144,7 +162,19 @@ const ProductCard = ({ product, onAddToCart, storeOpen = true, compact = false, 
         <button
           className="add-btn"
           onClick={hasVariants ? handleSelectOptionsClick : handleAddToCartClick}
-          style={{ padding: compact ? '5px 10px' : '8px 16px', fontSize: compact ? '0.75rem' : '0.85rem', width: '100%', marginTop: '4px' }}
+          style={{
+            padding: compact ? '4px 8px' : '6px 12px',
+            fontSize: compact ? '0.7rem' : '0.75rem',
+            width: '100%',
+            marginTop: '6px',
+            backgroundColor: !storeOpen || isOutOfStock ? '#D1D5DB' : '#FF5500',
+            color: '#FFFFFF',
+            border: 'none',
+            borderRadius: '6px',
+            fontWeight: '500',
+            cursor: !storeOpen || isOutOfStock ? 'not-allowed' : 'pointer',
+            transition: 'background-color 0.2s ease'
+          }}
           disabled={!storeOpen || isOutOfStock}
         >
           {!storeOpen ? 'Store Closed' : isOutOfStock ? 'Out of Stock' : hasVariants ? 'Select Options' : 'Add to Cart'}
