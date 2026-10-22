@@ -22,6 +22,7 @@ import VendorSettings from './pages/vendor/VendorSettings';
 // Customer pages
 import Storefront from './pages/customer/Storefront';
 import Products from './pages/customer/Products';
+import Stores from './pages/customer/Stores';
 import Saved from './pages/customer/Saved';
 import Favorites from './pages/customer/Favorites';
 import Payment from './pages/customer/Payment';
@@ -147,6 +148,7 @@ function AppContent() {
 
         {/* Customer */}
         <Route path="/products" element={<Products />} />
+        <Route path="/stores" element={<Stores />} />
         <Route path="/store/:storeSlug" element={<Storefront />} />
         <Route path="/saved" element={<Saved />} />
         <Route path="/favorites" element={<Favorites />} />

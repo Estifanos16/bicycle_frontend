@@ -183,6 +183,10 @@ export const updateProduct = (productId, productData) => API.put(`/products/${pr
 export const deleteProduct = (productId) => API.delete(`/products/${productId}`);
 export const getProductById = (productId) => API.get(`/products/${productId}`);
 
+// Vendors
+export const getVendors = () => API.get('/vendors');
+export const updateVendorProfile = (profileData) => API.put('/vendor/profile', profileData);
+
 // Orders
 export const createOrder = (orderData) => API.post('/orders', orderData);
 export const getPendingOrders = () => API.get('/orders/pending');

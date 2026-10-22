@@ -110,6 +110,7 @@ const Navbar = () => {
               ) : (
                 <Link to="/products" onClick={closeMobileMenu} style={{color: location.pathname === '/products' ? 'var(--color-primary)' : '', fontWeight: location.pathname === '/products' ? '700' : ''}}>Products</Link>
               )}
+              {isCustomer && <Link to="/stores" onClick={closeMobileMenu} style={{color: location.pathname === '/stores' ? 'var(--color-primary)' : '', fontWeight: location.pathname === '/stores' ? '700' : ''}}>Stores</Link>}
               {isSupermarket && <Link to="/vendor/settings" onClick={closeMobileMenu} style={{color: location.pathname === '/vendor/settings' ? 'var(--color-primary)' : '', fontWeight: location.pathname === '/vendor/settings' ? '700' : ''}}>Store Settings</Link>}
               {isCustomer && <Link to="/shop" onClick={closeMobileMenu} style={{color: location.pathname === '/shop' ? 'var(--color-primary)' : '', fontWeight: location.pathname === '/shop' ? '700' : ''}}>Shop</Link>}
               {isCustomer && <Link to="/my-orders" onClick={closeMobileMenu} style={{color: location.pathname === '/my-orders' ? 'var(--color-primary)' : '', fontWeight: location.pathname === '/my-orders' ? '700' : ''}}>My Orders</Link>}
@@ -183,6 +184,9 @@ const Navbar = () => {
 
                   {isCustomer && (
                     <>
+                      <div className="dropdown-item" onClick={() => handleDropdownItemClick('/stores')}>
+                        Browse Stores
+                      </div>
                       <div className="dropdown-item" onClick={() => handleDropdownItemClick('/shop')}>
                         Shop Products
                       </div>

@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { updateVendorProfile } from '../services/api';
 
 const VendorContext = createContext(null);
 
@@ -13,19 +14,20 @@ export const VendorProvider = ({ children }) => {
     setError(null);
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('/api/vendor/profile', {
+      const baseURL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+      const response = await fetch(`${baseURL}/api/vendor/profile`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         }
       });
-      
+
       if (!response.ok) {
         throw new Error('Failed to fetch vendor profile');
       }
-      
+
       const data = await response.json();
-      setVendorProfile(data);
+      setVendorProfile(data.user || data);
       return data;
     } catch (err) {
       setError(err.message);
@@ -41,16 +43,17 @@ export const VendorProvider = ({ children }) => {
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch(`/api/vendor/public/${slug}`, {
+      const baseURL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+      const response = await fetch(`${baseURL}/api/vendor/public/${slug}`, {
         headers: {
           'Content-Type': 'application/json'
         }
       });
-      
+
       if (!response.ok) {
         throw new Error('Failed to fetch vendor profile');
       }
-      
+
       const data = await response.json();
       setVendorProfile(data);
       return data;
@@ -68,25 +71,12 @@ export const VendorProvider = ({ children }) => {
     setLoading(true);
     setError(null);
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch('/api/vendor/profile', {
-        method: 'PUT',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(profileData)
-      });
-      
-      if (!response.ok) {
-        throw new Error('Failed to save vendor profile');
-      }
-      
-      const data = await response.json();
-      setVendorProfile(data);
+      const response = await updateVendorProfile(profileData);
+      const data = response.data;
+      setVendorProfile(data.user || data);
       return data;
     } catch (err) {
-      setError(err.message);
+      setError(err.message || 'Failed to save vendor profile');
       console.error('Error saving vendor profile:', err);
       return null;
     } finally {
