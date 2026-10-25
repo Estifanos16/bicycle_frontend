@@ -72,6 +72,9 @@ export const getProductById = (productId) => API.get(`/products/${productId}`);
 
 // Vendors
 export const getVendors = () => API.get('/vendors');
+export const getVendorById = (vendorId) => API.get(`/vendors/${vendorId}`);
+export const getVendorByOwnerId = (ownerId) => API.get(`/vendors/owner/${ownerId}`);
+export const getUserBankingInfo = (userId) => API.get(`/vendors/user/${userId}/banking`);
 export const updateVendorProfile = (profileData) => API.put('/vendor/profile', profileData);
 
 // Orders

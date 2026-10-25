@@ -11,40 +11,47 @@ export const CartProvider = ({ children }) => {
   const [message, setMessage] = useState('');
   const { user } = useContext(AuthContext);
 
-  const addToCart = (product) => {
+  const addToCart = (product, variant = null) => {
     if (cart.length > 0) {
-      const existingSupermarketId = cart[0].supermarketId?._id || cart[0].supermarketId;
-      const newSupermarketId = product.supermarketId?._id || product.supermarketId;
-      if (existingSupermarketId !== newSupermarketId) {
+      const existingSupermarketId = cart[0].product.supermarketId?._id || cart[0].product.supermarketId || cart[0].product.vendorId?._id || cart[0].product.vendorId;
+      const newSupermarketId = product.supermarketId?._id || product.supermarketId || product.vendorId?._id || product.vendorId;
+      if (existingSupermarketId && newSupermarketId && existingSupermarketId !== newSupermarketId) {
         setMessage('Please order from one supermarket at a time.');
         return;
       }
     }
 
     // Use variantId if present for unique identification
-    const itemId = product.variantId ? `${product._id}-${product.variantId}` : product._id;
+    const variantId = variant ? variant._id : null;
+    const itemId = variantId ? `${product._id}-${variantId}` : product._id;
     const existing = cart.find((p) => {
-      const existingItemId = p.variantId ? `${p._id}-${p.variantId}` : p._id;
+      const existingItemId = p.variantId ? `${p.product._id}-${p.variantId}` : p.product._id;
       return existingItemId === itemId;
     });
     
     if (existing) {
       setCart(cart.map((p) => {
-        const existingItemId = p.variantId ? `${p._id}-${p.variantId}` : p._id;
-        return existingItemId === itemId ? { ...p, quantity: p.quantity + (product.quantity || 1) } : p;
+        const existingItemId = p.variantId ? `${p.product._id}-${p.variantId}` : p.product._id;
+        return existingItemId === itemId ? { ...p, quantity: p.quantity + 1 } : p;
       }));
     } else {
-      setCart([...cart, { ...product, quantity: product.quantity || 1 }]);
+      setCart([...cart, { product, variant, quantity: 1 }]);
     }
     setMessage('');
   };
 
-  const removeFromCart = (id) => {
-    setCart(cart.filter((p) => {
-      // Handle both regular IDs and composite IDs (productId-variantId)
-      const itemId = p.variantId ? `${p._id}-${p.variantId}` : p._id;
-      return itemId !== id;
-    }));
+  const removeFromCart = (index) => {
+    setCart(cart.filter((_, i) => i !== index));
+  };
+
+  const updateQuantity = (index, quantity) => {
+    if (quantity <= 0) {
+      removeFromCart(index);
+    } else {
+      setCart(cart.map((item, i) => 
+        i === index ? { ...item, quantity } : item
+      ));
+    }
   };
 
   const clearCart = () => setCart([]);
@@ -63,22 +70,17 @@ export const CartProvider = ({ children }) => {
     const idempotencyKey = `${user?._id || user?.id}-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
 
     const orderData = {
-      items: cart.map((p) => {
-        // Split composite ID if it exists (productId-variantId format)
-        const compositeId = p._id;
-        const productId = compositeId.includes('-') ? compositeId.split('-')[0] : compositeId;
-        const variantId = p.variantId || (compositeId.includes('-') ? compositeId.split('-')[1] : undefined);
-        
+      items: cart.map((item) => {
         return {
-          productId,
-          variantId,
-          quantity: p.quantity
+          productId: item.product._id,
+          variantId: item.variant?._id,
+          quantity: item.quantity
         };
       }),
       deliveryAddress,
       deliveryLocation,
       paymentMethod,
-      vendorId: cart[0].supermarketId?._id || cart[0].supermarketId || cart[0].vendorId?._id || cart[0].vendorId,
+      vendorId: cart[0].product.supermarketId?._id || cart[0].product.supermarketId || cart[0].product.vendorId?._id || cart[0].product.vendorId,
       idempotencyKey
     };
 
@@ -94,7 +96,7 @@ export const CartProvider = ({ children }) => {
   };
 
   return (
-    <CartContext.Provider value={{ cart, addToCart, removeFromCart, clearCart, placeOrder, message, setMessage }}>
+    <CartContext.Provider value={{ cart, addToCart, removeFromCart, updateQuantity, clearCart, placeOrder, message, setMessage }}>
       {children}
     </CartContext.Provider>
   );

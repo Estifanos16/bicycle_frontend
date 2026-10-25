@@ -22,6 +22,7 @@ import VendorSettings from './pages/vendor/VendorSettings';
 // Customer pages
 import Storefront from './pages/customer/Storefront';
 import Products from './pages/customer/Products';
+import Shop from './pages/customer/Shop';
 import Stores from './pages/customer/Stores';
 import Saved from './pages/customer/Saved';
 import Favorites from './pages/customer/Favorites';
@@ -76,6 +77,7 @@ function AppContent() {
     '/login', '/register', '/profile',
     '/vendor/settings',
     '/vendor/products/new',
+    '/checkout',
   ].includes(location.pathname) ||
     (location.pathname.startsWith('/vendor/products/') && location.pathname.endsWith('/edit'));
 
@@ -168,7 +170,7 @@ function AppContent() {
           path="/shop"
           element={
             <PrivateRoute roles={['customer']}>
-              <Orders />
+              <Shop />
             </PrivateRoute>
           }
         />
