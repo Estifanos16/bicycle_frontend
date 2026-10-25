@@ -1,36 +1,31 @@
 // src/pages/Orders.jsx
 import React, { useState, useEffect, useContext } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { getProducts } from '../services/api';
 import { AuthContext } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
+import ProductCard from '../components/product/ProductCard';
 
 const Orders = () => {
   const { user } = useContext(AuthContext);
+  const navigate = useNavigate();
   const [products, setProducts] = useState([]);
-  const { cart, addToCart, removeFromCart, placeOrder, message, setMessage } = useCart();
-  const [deliveryAddress, setDeliveryAddress] = useState('');
+  const { cart, addToCart, removeFromCart, message, setMessage } = useCart();
 
   const fetchProducts = async () => {
     try {
       const response = await getProducts();
-      setProducts(response.data);
+      setProducts(response.data || []);
     } catch (err) {
       console.error(err);
       setMessage('Unable to load products.');
+      setProducts([]);
     }
   };
 
   useEffect(() => {
     fetchProducts();
   }, []);
-
-  const handleOrder = async () => {
-    const res = await placeOrder({ deliveryAddress });
-    if (res?.success) {
-      setMessage('Order placed successfully');
-      setDeliveryAddress('');
-    }
-  };
 
   const orderTotal = cart.reduce((total, item) => total + item.price * item.quantity, 0);
 
@@ -45,22 +40,17 @@ const Orders = () => {
 
       <div className="orders-layout">
         <div className="products-grid">
-          {products.map((product) => (
-            <div className="product-card" key={product._id}>
-              <div className="product-card-header">
-                <h3>{product.name}</h3>
-                <span className={`badge ${product.stock > 0 ? 'badge-success' : 'badge-warning'}`}>
-                  {product.stock > 0 ? 'In stock' : 'Out of stock'}
-                </span>
-              </div>
-              <p className="product-description">{product.description || 'No description provided.'}</p>
-              <p className="product-price">ETB {product.price.toFixed(2)}</p>
-              <p className="product-seller">Supermarket: {product.supermarketId?.name || 'Unknown'}</p>
-              <button disabled={product.stock <= 0} onClick={() => addToCart(product)}>
-                Add to Cart
-              </button>
-            </div>
-          ))}
+          <div className="grid grid-cols-[repeat(auto-fit,minmax(180px,1fr))] lg:grid-cols-6 gap-6 w-full items-start justify-start">
+            {products.map((product) => (
+              <ProductCard
+                key={product._id}
+                product={product}
+                storeOpen={true}
+                compact={true}
+                onAddToCart={addToCart}
+              />
+            ))}
+          </div>
         </div>
 
         <aside className="cart-panel">
@@ -76,8 +66,8 @@ const Orders = () => {
                       <strong>{item.name}</strong>
                       <p>{item.quantity} x ETB {item.price.toFixed(2)}</p>
                     </div>
-                    <button 
-                      className="button-secondary" 
+                    <button
+                      className="button-secondary"
                       onClick={() => removeFromCart(item._id)}
                       style={{padding: '4px 8px', fontSize: '0.75rem'}}
                     >
@@ -88,19 +78,23 @@ const Orders = () => {
                 <div className="cart-total" style={{marginTop: '12px', fontSize: '0.9rem'}}>
                   <strong>Total:</strong> ETB {orderTotal.toFixed(2)}
                 </div>
-                <input
-                  type="text"
-                  placeholder="Delivery Address"
-                  value={deliveryAddress}
-                  onChange={(e) => setDeliveryAddress(e.target.value)}
-                  style={{padding: '8px', fontSize: '0.85rem', marginTop: '8px'}}
-                />
-                <button 
-                  onClick={handleOrder} 
-                  disabled={!deliveryAddress}
-                  style={{padding: '8px', fontSize: '0.85rem', marginTop: '8px'}}
+                <button
+                  onClick={() => navigate('/checkout')}
+                  disabled={cart.length === 0}
+                  style={{
+                    width: '100%',
+                    padding: '10px',
+                    fontSize: '0.9rem',
+                    marginTop: '12px',
+                    background: '#FF5500',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '6px',
+                    cursor: cart.length === 0 ? 'not-allowed' : 'pointer',
+                    opacity: cart.length === 0 ? 0.5 : 1
+                  }}
                 >
-                  Place Order
+                  Proceed to Checkout
                 </button>
               </>
             )}

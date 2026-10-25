@@ -49,7 +49,7 @@ export const CartProvider = ({ children }) => {
 
   const clearCart = () => setCart([]);
 
-  const placeOrder = async ({ deliveryAddress }) => {
+  const placeOrder = async ({ deliveryAddress, deliveryLocation, paymentMethod }) => {
     if (!deliveryAddress) {
       setMessage('Please enter a delivery address.');
       return;
@@ -76,6 +76,8 @@ export const CartProvider = ({ children }) => {
         };
       }),
       deliveryAddress,
+      deliveryLocation,
+      paymentMethod,
       vendorId: cart[0].supermarketId?._id || cart[0].supermarketId || cart[0].vendorId?._id || cart[0].vendorId,
       idempotencyKey
     };

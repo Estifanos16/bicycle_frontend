@@ -43,6 +43,11 @@ const ProductForm = ({
   // ── Initialize previews when formData changes (for edit mode) ─────────────────
   useEffect(() => {
     console.log('[ProductForm] formData changed, images:', formData.images, 'image:', formData.image);
+    // Clear previews if formData is empty (add mode reset)
+    if (!formData.images || formData.images.length === 0) {
+      setImagePreviews([]);
+      return;
+    }
     // Only update from formData if it contains strings (URLs), not File objects
     // File objects are handled by handleImageUpload which creates blob URLs
     if (formData.images && Array.isArray(formData.images) && formData.images.length > 0) {

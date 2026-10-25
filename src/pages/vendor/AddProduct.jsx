@@ -25,6 +25,7 @@ const AddProduct = () => {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
+  const [formKey, setFormKey] = useState(0);
 
   const handleSubmit = async () => {
     setSaving(true);
@@ -77,9 +78,10 @@ const AddProduct = () => {
       await createProduct(formDataToSend);
       setMessage('Product created successfully!');
       setFormData(EMPTY_FORM);
+      setFormKey(prev => prev + 1); // Force form remount to clear previews
 
-      // Navigate back to product list after short delay
-      setTimeout(() => navigate('/products'), 800);
+      // Navigate to dashboard after short delay
+      setTimeout(() => navigate('/'), 800);
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to create product.');
     } finally {
@@ -89,10 +91,11 @@ const AddProduct = () => {
 
   return (
     <ProductForm
+      key={formKey}
       formData={formData}
       setFormData={setFormData}
       onSubmit={handleSubmit}
-      onCancel={() => navigate('/products')}
+      onCancel={() => navigate('/')}
       saving={saving}
       isEdit={false}
       error={error}

@@ -1,9 +1,10 @@
 import React, { useContext, useState, useEffect } from 'react';
 import { AuthContext } from '../context/AuthContext';
 import { Link } from 'react-router-dom';
-import { getProducts, getVendorProducts } from '../services/api';
+import { getProducts } from '../services/api';
 import { useCart } from '../context/CartContext';
 import { useNavigate } from 'react-router-dom';
+import ProductCard from '../components/product/ProductCard';
 
 const Dashboard = () => {
   const { user } = useContext(AuthContext);
@@ -40,6 +41,7 @@ const Dashboard = () => {
         setProducts(fetchedProducts);
       } catch (err) {
         console.error('Failed to fetch products:', err);
+        setProducts([]);
       }
     };
     fetchProducts();
@@ -119,40 +121,19 @@ const Dashboard = () => {
         <div style={{
           padding: '0 24px'
         }}>
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: products.length <= 6
-              ? `repeat(${products.length}, minmax(180px, 240px))`
-              : 'repeat(auto-fill, minmax(180px, 240px))',
-            gap: '20px',
-            justifyContent: 'center',
-            width: '100%',
-            overflowX: 'hidden'
-          }}>
-          {products.map((p) => (
-            <article className="product-card" key={p._id} style={{padding:'8px', width:'100%'}}>
-              <div className="product-media" style={{height:'120px', width:'100%'}}>
-                <img
-                  src={(p.images && p.images[0]) || p.image || `https://via.placeholder.com/800x800?text=${encodeURIComponent(p.name)}`}
-                  alt={p.name}
-                  style={{width:'100%',height:'100%',objectFit:'cover'}}
-                />
-              </div>
-              <div className="product-body" style={{padding:'6px 0 0 0', width:'100%'}}>
-                <div className="product-title" style={{fontSize:'0.85rem',marginBottom:'2px',lineHeight:'1.2'}}>{p.name}</div>
-                {p.description && (
-                  <p className="product-description text-xs text-gray-500 line-clamp-2" style={{fontSize:'0.75rem', color:'#6B7280', margin:'2px 0 4px 0', lineHeight:'1.2'}} title={p.description}>
-                    {p.description}
-                  </p>
-                )}
-                <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'6px', width:'100%'}}>
-                  <div className="rating"><span style={{color:'#f5b450',fontSize:'0.8rem'}}>★</span><span className="small muted" style={{marginLeft:'3px',fontSize:'0.7rem'}}>{(p.stock || 0) > 0 ? 'In stock' : 'Out of stock'}</span></div>
-                  <div className="price" style={{fontSize:'0.9rem'}}>${p.price?.toFixed(2)}</div>
-                </div>
-                <button className="add-btn" onClick={() => { addToCart(p); navigate('/shop'); }} style={{padding:'5px 10px',fontSize:'0.75rem', width:'100%'}}>Add to Cart</button>
-              </div>
-            </article>
-          ))}
+          <div className="grid grid-cols-[repeat(auto-fit,minmax(180px,1fr))] lg:grid-cols-6 gap-6 w-full items-start justify-start">
+            {products.map((p) => (
+              <ProductCard
+                key={p._id}
+                product={p}
+                storeOpen={true}
+                compact={true}
+                onAddToCart={(prod) => {
+                  addToCart(prod);
+                  navigate('/shop');
+                }}
+              />
+            ))}
           </div>
         </div>
       </div>

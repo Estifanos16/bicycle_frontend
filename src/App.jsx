@@ -27,6 +27,7 @@ import Saved from './pages/customer/Saved';
 import Favorites from './pages/customer/Favorites';
 import Payment from './pages/customer/Payment';
 import MyOrders from './pages/customer/MyOrders';
+import Checkout from './pages/customer/Checkout';
 
 // Rider pages
 import RiderOrders from './pages/rider/RiderOrders';
@@ -41,7 +42,9 @@ import Orders from './pages/Orders';
 
 // Infrastructure
 import PrivateRoute from './components/PrivateRoute';
+import { AuthProvider } from './context/AuthContext';
 import { VendorProvider } from './context/VendorContext';
+import { CartProvider } from './context/CartContext';
 
 function AppContent() {
   const location = useLocation();
@@ -154,6 +157,14 @@ function AppContent() {
         <Route path="/favorites" element={<Favorites />} />
         <Route path="/payment" element={<Payment />} />
         <Route
+          path="/checkout"
+          element={
+            <PrivateRoute roles={['customer']}>
+              <Checkout />
+            </PrivateRoute>
+          }
+        />
+        <Route
           path="/shop"
           element={
             <PrivateRoute roles={['customer']}>
@@ -200,11 +211,15 @@ function AppContent() {
 
 function App() {
   return (
-    <VendorProvider>
-      <Router>
-        <AppContent />
-      </Router>
-    </VendorProvider>
+    <AuthProvider>
+      <VendorProvider>
+        <CartProvider>
+          <Router>
+            <AppContent />
+          </Router>
+        </CartProvider>
+      </VendorProvider>
+    </AuthProvider>
   );
 }
 

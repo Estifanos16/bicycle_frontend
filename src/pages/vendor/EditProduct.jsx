@@ -120,8 +120,8 @@ const EditProduct = () => {
       await updateProduct(id, formDataToSend);
       setMessage('Product updated successfully!');
 
-      // Navigate back to product list after short delay
-      setTimeout(() => navigate('/products'), 800);
+      // Navigate to dashboard after short delay
+      setTimeout(() => navigate('/'), 800);
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to update product.');
     } finally {
@@ -144,7 +144,7 @@ const EditProduct = () => {
       formData={formData}
       setFormData={setFormData}
       onSubmit={handleSubmit}
-      onCancel={() => navigate('/products')}
+      onCancel={() => navigate('/')}
       saving={saving}
       isEdit={true}
       error={error}
