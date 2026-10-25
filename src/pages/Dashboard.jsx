@@ -121,7 +121,12 @@ const Dashboard = () => {
         <div style={{
           padding: '0 24px'
         }}>
-          <div className="grid grid-cols-[repeat(auto-fit,minmax(180px,1fr))] lg:grid-cols-6 gap-6 w-full items-start justify-start">
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))',
+            gap: '16px',
+            width: '100%'
+          }}>
             {products.map((p) => (
               <ProductCard
                 key={p._id}

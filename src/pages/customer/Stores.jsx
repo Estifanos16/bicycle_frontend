@@ -38,12 +38,15 @@ const Stores = () => {
   };
 
   const handleBrowseStore = (vendor) => {
+    // Use ownerId (User ID) instead of vendor._id (Vendor document ID)
+    // Products are linked to User IDs, not Vendor document IDs
+    const vendorId = vendor.ownerId?._id || vendor.ownerId || vendor._id || vendor.id;
+
     // Check if cart has items from a different store
     if (cart.length > 0) {
       const currentVendorId = cart[0].supermarketId?._id || cart[0].supermarketId || cart[0].vendorId?._id || cart[0].vendorId;
-      const newVendorId = vendor._id || vendor.id;
 
-      if (currentVendorId && currentVendorId !== newVendorId) {
+      if (currentVendorId && currentVendorId !== vendorId) {
         const currentVendorName = cart[0].supermarketId?.name || cart[0].vendorId?.name || 'your current store';
         const branding = getBranding(vendor);
         const storeName = branding.storeName || vendor.name || 'this store';
@@ -53,14 +56,13 @@ const Stores = () => {
 
         if (confirmClear) {
           clearCart();
-          navigate(`/products?vendorId=${newVendorId}`);
+          navigate(`/products?vendorId=${vendorId}`);
         }
         return;
       }
     }
 
     // Navigate to products filtered by vendor
-    const vendorId = vendor._id || vendor.id;
     navigate(`/products?vendorId=${vendorId}`);
   };
 

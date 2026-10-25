@@ -20,7 +20,7 @@ const ProductCard = ({ product, onAddToCart, storeOpen = true, compact = false, 
   const isLowStock = currentStock > 0 && currentStock <= 5;
   const imageSrc = (product.images && product.images[0]) || product.image || `https://via.placeholder.com/400x400?text=${encodeURIComponent(product.name || 'Product')}`;
   const unitLabel = product.unit || 'piece';
-  const vendorName = product.vendorId?.name || product.supermarketId?.name || product.vendor?.name || 'Unknown Vendor';
+  const vendorName = product.vendorId?.name || product.vendor?.name || product.supermarketId?.name || 'Unknown Vendor';
 
   const handleAddToCartClick = () => {
     if (onAddToCart) {
